@@ -1,6 +1,8 @@
-# Python Studies at NPS
+# Pokémon: Near Peer Battle Simulation
 
-Welcome to my Python Studies folder, a comprehensive collection dedicated to my journey in learning Python at the Naval Postgraduate School (NPS). This repository is designed to document my progress, projects, and learnings as I delve into Python programming, focusing on applications relevant to my field of study and interests.
+Welcome to our team's final project repository that showcases our Pokemon Battle Simulator.
+
+Computational Methods at the Naval Postgraduate School (NPS).
 
 ## About This Repository
 
