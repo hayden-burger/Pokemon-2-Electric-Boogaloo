@@ -12,7 +12,7 @@ Description:
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
+# import plotly.graph_objects as go   # Used for plotting scatterplot with sprites
 import pokemon_module as pk
 import numpy as np
 import io
