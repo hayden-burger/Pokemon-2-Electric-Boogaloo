@@ -98,6 +98,8 @@ def plot_total_wins(tab, battle_data):
                             title='Total Wins per Pokémon')
     fig_total_wins.update_layout(xaxis_title='Pokémon', yaxis_title='Number of Wins')
     tab.plotly_chart(fig_total_wins)
+    
+    
 
 # Function to plot a scatterplot of Pokémon base_total
 def plot_total_wins_vs_attribute(merged_data, attribute):
