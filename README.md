@@ -8,10 +8,10 @@ Computational Methods at the Naval Postgraduate School (NPS).
 
 This repository serves as a digital workspace and a portfolio of my Python projects and exercises. It's organized into various folders and files, each catering to different aspects of Python programming, from basic syntax and data structures to more advanced topics like machine learning and data analysis.
 
-### Folder Structure
+### Data Files
 
-- **`Basics`**: Contains notebooks and scripts covering Python fundamentals, including variables, data types, control structures, and basic algorithms.
-- **`Data Analysis`**: Includes projects and exercises on analyzing datasets using libraries like pandas, NumPy, and matplotlib.
+- **`1000runs.csv`**: Contains asdfsdafms.
+- **`Pokemon.csv`**: Includes projects and exercises on analyzing datasets using libraries like pandas, NumPy, and matplotlib.
 - **`Machine Learning`**: Features introductory projects on machine learning with Python, utilizing scikit-learn and other relevant libraries.
 - **`Applications`**: This folder is dedicated to Python applications in specific domains of interest, showcasing how Python can be applied to solve real-world problems.
 - **`Challenges`**: A compilation of coding challenges and their solutions, aimed at sharpening my problem-solving skills.
