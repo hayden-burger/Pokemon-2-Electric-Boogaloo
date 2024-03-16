@@ -12,7 +12,7 @@ This repository serves as a digital workspace and a portfolio of my Python proje
 
 - **`1000runs.csv`**: Contains asdfsdafms.
 - **`Pokemon.csv`**: Includes projects and exercises on analyzing datasets using libraries like pandas, NumPy, and matplotlib.
-- **`Machine Learning`**: Features introductory projects on machine learning with Python, utilizing scikit-learn and other relevant libraries.
+- **`Move_set_per_pokemon.csv`**: Features introductory projects on machine learning with Python, utilizing scikit-learn and other relevant libraries.
 - **`Applications`**: This folder is dedicated to Python applications in specific domains of interest, showcasing how Python can be applied to solve real-world problems.
 - **`Challenges`**: A compilation of coding challenges and their solutions, aimed at sharpening my problem-solving skills.
 
