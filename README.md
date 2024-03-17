@@ -8,10 +8,10 @@ Computational Methods at the Naval Postgraduate School (NPS).
 This repo contains data source files, python modules, and 1 jupyter notebook. The data files are csvs that we used to run the simulations and the results from those simulations. The jupyter notebook holds the code for running the simulations and it pulls from the pokemon_module.py that has the functions and class we used. The vis.py is the streamlit app that is accessible for viewing at https://pokemonnearpeerbattlesim3801.streamlit.app/
 
 ### Contributors
-- **`Hayden Burger`**
-- - **`Hayden Burger`**
-  - - **`Hayden Burger`**
-    - - **`Hayden Burger`**
+- **Hayden Burger**
+- **Corinne Desroches**
+- **David Lee**
+- **John Tyler**
 
 ### Data Files
 
