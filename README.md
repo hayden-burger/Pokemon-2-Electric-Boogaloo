@@ -1,20 +1,24 @@
 # Pokémon: Near Peer Battle Simulation
-
 Welcome to our team's final project repository that showcases our Pokemon Battle Simulator.
 
 Computational Methods at the Naval Postgraduate School (NPS).
 
 ## About This Repository
 
-This repository serves as a digital workspace and a portfolio of my Python projects and exercises. It's organized into various folders and files, each catering to different aspects of Python programming, from basic syntax and data structures to more advanced topics like machine learning and data analysis.
+This repo contains data source files, python modules, and 1 jupyter notebook. The data files are csvs that we used to run the simulations and the results from those simulations. The jupyter notebook holds the code for running the simulations and it pulls from the pokemon_module.py that has the functions and class we used. The vis.py is the streamlit app that is accessible for viewing at https://pokemonnearpeerbattlesim3801.streamlit.app/
+
+### Contributors
+- **`Hayden Burger`**
+- - **`Hayden Burger`**
+  - - **`Hayden Burger`**
+    - - **`Hayden Burger`**
 
 ### Data Files
 
 - **`1000runs.csv`**: Contains asdfsdafms.
-- **`Pokemon.csv`**: Includes projects and exercises on analyzing datasets using libraries like pandas, NumPy, and matplotlib.
-- **`Move_set_per_pokemon.csv`**: Features introductory projects on machine learning with Python, utilizing scikit-learn and other relevant libraries.
-- **`Applications`**: This folder is dedicated to Python applications in specific domains of interest, showcasing how Python can be applied to solve real-world problems.
-- **`Challenges`**: A compilation of coding challenges and their solutions, aimed at sharpening my problem-solving skills.
+- **`Pokemon.csv`**: asdfsdfdsfad
+- **`Move_set_per_pokemon.csv`**: Feasdfasdfdsa
+
 
 ### Getting Started
 
