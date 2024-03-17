@@ -61,6 +61,7 @@ type_colors = {
     'dragon': '#7038F8',  # Royal Blue
 }
 
+
 # Function to get color based on Pokémon types
 def get_pokemon_color(type1, type2, other_type1, other_type2):
     # Set the default/fallback color
@@ -83,6 +84,7 @@ def get_pokemon_color(type1, type2, other_type1, other_type2):
 
     return color_pokemon1, color_pokemon2
 
+
 #Assign all pokemon as a class
 def assign_pokemon_class():
     gen1 = np.where(pk.Pokemon_df['generation'] == 1) #isolates gen 1 pokemon
@@ -92,15 +94,15 @@ def assign_pokemon_class():
         pokemon_dict[pokemon_name] = pk.Pokemon(pokemon_name)
     return pokemon_dict
 
+
 # New function to plot total wins histogram over every pokemon
 def plot_total_wins(tab, battle_data):
     fig_total_wins = px.bar(total_wins, x='name', y='Total Wins',
-                            title='Total Wins per Pokémon 2')
+                            title='Total Wins per Pokémon')
     fig_total_wins.update_layout(xaxis_title='Pokémon', yaxis_title='Number of Wins')
     tab.plotly_chart(fig_total_wins)
     
     
-
 # Function to plot a scatterplot of Pokémon base_total
 def plot_total_wins_vs_attribute(merged_data, attribute):
     fig_scatter = px.scatter(merged_data, x='Total Wins', y=attribute, text='name',
@@ -156,7 +158,7 @@ def plot_total_wins_vs_attribute(merged_data, attribute):
     # fig.update_layout_images(layer="below")
 
     # st.plotly_chart(fig)
-
+    
 
 # function for plotting the performance of a single pokemon
 def plot_performance(tab, selected_pokemon):
