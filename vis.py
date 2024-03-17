@@ -95,7 +95,7 @@ def assign_pokemon_class():
 # New function to plot total wins histogram over every pokemon
 def plot_total_wins(tab, battle_data):
     fig_total_wins = px.bar(total_wins, x='name', y='Total Wins',
-                            title='Total Wins per Pokémon')
+                            title='Total Wins per Pokémon 2')
     fig_total_wins.update_layout(xaxis_title='Pokémon', yaxis_title='Number of Wins')
     tab.plotly_chart(fig_total_wins)
     
