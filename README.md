@@ -23,7 +23,7 @@ Special thanks to our course instructors and peers at NPS for their support and 
 - **`Moveset.csv`**: Details the moves with their type, power, accuracy, effects, and effect probability.
 - **`Requirements.txt`**: Lists the packages needed for the Streamlit app.
 
-  ### Python Files
+### Python Files
 
 - **`Pokemon_module.py`**: Contains the data cleaning and resulting dataframes, the Pokémon class, and the battle functions.
 - **`Vis.py`**: Contains the script to visualize the `1000runs.csv` file in a Streamlit App.
