@@ -20,6 +20,15 @@ Special thanks to our course instructors and peers at NPS for their support and 
 - **`1000runs.csv`**: Contains the outcomes of 1,000 simulated battles for each Pokémon pairing.
 - **`Pokemon.csv`**: Provides the base stats, available moves, and other attributes for each Generation 1 Pokémon.
 - **`Move_set_per_pokemon.csv`**: Details the moves available to each Pokémon and their effects.
+- **`Moveset.csv`**: Details the moves with their type, power, accuracy, effects, and effect probability.
+- **`Requirements.txt`**: Lists the packages needed for the Streamlit app.
+
+  ### Python Files
+
+- **`Pokemon_module.py`**: Contains the data cleaning and resulting dataframes, the Pokémon class, and the battle functions.
+- **`Vis.py`**: Contains the script to visualize the `1000runs.csv` file in a Streamlit App.
+- **`Jupyter Notebook`**: Jupyter Notebook to perform 1000 iterations of every pokemon battle and exported to csv. Also contains functions and code to build visuals.
+
 
 ### Project Overview
 
