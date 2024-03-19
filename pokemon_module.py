@@ -46,6 +46,10 @@ Pokemon_df.loc[:,'name'] = Pokemon_df.loc[:,'name'].replace('nidoran♀','nidora
 # set Pokemon name to index
 Pokemon_df.set_index('name',inplace=True)
 
+# add sprites for each pokemon
+base_url = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork"
+Pokemon_df['image_url'] = Pokemon_df['pokedex_number'].apply(lambda x: f"{base_url}/{x}.png")
+
 ##################################
 #Moveset_df/ L1_moves:
 # read in the 1st moveset csv

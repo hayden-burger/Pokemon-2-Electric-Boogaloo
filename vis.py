@@ -32,8 +32,6 @@ def load_data(filepath, **kwargs):
 battle_data_path = '1000runs.csv'
 battle_data = load_data(battle_data_path, index_col='name')
 pokemon_data = pk.Pokemon_df
-base_url = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork"
-pokemon_data['image_url'] = pokemon_data['pokedex_number'].apply(lambda x: f"{base_url}/{x}.png")
 move_data = pk.merged_moves_df
 
 # Calculate total wins for each Pokémon
@@ -175,18 +173,22 @@ def display_pokemon_details(column, pokemon_name):
     # Retrieve Pokémon details
     details = pokemon_data.loc[pokemon_name, ['generation', 'type1', 'type2', 'height_m', 'weight_kg', 'pokedex_number', 'image_url']]
     moves = move_data.loc[move_data['name'].isin([pokemon_name])].move
+    html_content = f"""
+                    <img src="{details['image_url']}" width="100"><br>
+                    <b style='font-size: 20px;'>{pokemon_name}</b><br>
+                    Pokedex#: {details['pokedex_number']}<br>
+                    Gen: {details['generation']}<br>
+                    T1: {details['type1']}<br>
+                    """
+    if pd.notnull(details['type2']):  # Check if 'type2' is not NaN
+        html_content += f"T2: {details['type2']}<br>"
+    html_content += f"""Ht: {details['height_m']} m<br>
+                    Wt: {details['weight_kg']} kg<br>
+                    Moves: {', '.join(moves.values)}
+                    """
     # Display details in the specified column
     with column:
-        st.image(details['image_url'], width=100)  # Smaller width
-        st.caption(pokemon_name)
-        st.caption(f"Pokedex#: {details['pokedex_number']}")
-        st.caption(f"Gen: {details['generation']}")
-        st.caption(f"T1: {details['type1']}")
-        if pd.notnull(details['type2']):  # Check if 'type2' is not NaN
-            st.caption(f"T2: {details['type2']}")
-        st.caption(f"Ht: {details['height_m']} m")
-        st.caption(f"Wt: {details['weight_kg']} kg")
-        st.caption(f"Moves: {moves.values}")
+        st.markdown(html_content, unsafe_allow_html=True)
 
 # Comparison function with color coding integration
 def compare_pokemon(column, pokemon1, pokemon2, pokemon1_color, pokemon2_color):
@@ -195,16 +197,16 @@ def compare_pokemon(column, pokemon1, pokemon2, pokemon1_color, pokemon2_color):
     pokemon2_data = pokemon_data.loc[pokemon2, attrs]
     
     comparison_data = pd.DataFrame({'Attribute': attrs, pokemon1: pokemon1_data, pokemon2: pokemon2_data}).melt(id_vars='Attribute', var_name='Pokemon', value_name='Value')
-    
+
     with column:
         fig_comparison = px.bar(comparison_data, x='Attribute', y='Value', color='Pokemon', barmode='group', title=f'Comparison: {pokemon1} vs. {pokemon2}',
                                 color_discrete_map={pokemon1: pokemon1_color, pokemon2: pokemon2_color})
-        fig_comparison.update_layout(yaxis=dict(range=[0, max_base_total]), width=500)
+        fig_comparison.update_layout(yaxis=dict(range=[0, max_base_total]))
         fig_comparison.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
-                                        xaxis=dict(showline=True, linecolor='rgb(204, 204, 204)', linewidth=2),
-                                        yaxis=dict(showline=True, linecolor='rgb(204, 204, 204)', linewidth=2))
+                                    xaxis=dict(showline=True, linecolor='rgb(204, 204, 204)', linewidth=2),
+                                    yaxis=dict(showline=True, linecolor='rgb(204, 204, 204)', linewidth=2),
+                                    legend=dict(x=1, y=1, xanchor='right', yanchor='top'))
         st.plotly_chart(fig_comparison)
-
 
 # Streamlit app layout
 st.title('Pokémon Battle Performance')
@@ -214,6 +216,23 @@ tab1, tab2, tab3 = st.tabs(["Total Wins", "Selected Pokémon Performance", "Sele
 
 # Tab 1: overall performance bar graph and scatter plot on attributes
 with tab1:
+    #Add App description
+    with st.expander("App Description"):
+        st.markdown("""
+                    ## Simulation Overview
+
+                    This app showcases the results of 1,000 Monte Carlo simulated runs of each Generation 1 Pokémon battling against each other. With 151 Pokémon, the wins were recorded in a pandas dataframe of size 151x151, where each cell takes a value between 0 and 1000, representing the number of wins Pokémon A has against Pokémon B.
+
+                    ### Assumptions/Restrictions
+
+                    For our simulation, we made the following assumptions/restrictions:
+
+                    - Every Pokémon was at level 1.
+                    - Each Pokémon only has access to moves it knows at level 1.
+                    - Each move is randomly selected on its turn if it has access to it.
+                    - PP for moves was not included; instead, we called it a draw after 100 rounds of combat.
+                    """, unsafe_allow_html=False)
+
     plot_total_wins(tab1, battle_data)
     
     st.write("---")  # Adds a visual separator
@@ -225,7 +244,9 @@ with tab1:
 
 # Tab 2: Dropdown menu for selecting a Pokémon and plotting its performance
 with tab2:
-    selected_pokemon = st.selectbox('Select a Pokémon:', options=battle_data.columns, key='pokemon_select_tab2')
+    col_drop, empty_col,col_image = st.columns([5,1,2])
+    selected_pokemon = col_drop.selectbox('Select a Pokémon:', options=battle_data.columns, key='pokemon_select_tab2')
+    col_image.image(pokemon_data.loc[selected_pokemon, 'image_url'], width=100)  # Smaller width
     plot_performance(tab2, selected_pokemon)
 
 # Tab 3: User picks two pokemon to compare side by side with an option to simulate a battle live
@@ -236,7 +257,7 @@ with tab3:
     # Get color for each Pokémon
     pokemon1_color, pokemon2_color = get_pokemon_color(pokemon_data.loc[pokemon1, 'type1'], pokemon_data.loc[pokemon1, 'type2'], pokemon_data.loc[pokemon2, 'type1'], pokemon_data.loc[pokemon2, 'type2'])
     # Adjust the ratios to give more space to the middle column and less to the side columns
-    col1, col_plot, col2 = st.columns([1, 5, 1])
+    col1, col_plot, col2 = st.columns([1, 4, 1])
     # 1st Pokemon card
     display_pokemon_details(col1, pokemon1)
     # display pokemon stats 
@@ -244,6 +265,8 @@ with tab3:
     compare_pokemon(col_plot, pokemon1, pokemon2, pokemon1_color, pokemon2_color)
     # 2nd Pokemon card
     display_pokemon_details(col2, pokemon2)
+    moves = pd.concat((move_data.loc[move_data['name'].isin([pokemon1])], (move_data.loc[move_data['name'].isin([pokemon2])]))).set_index('move').drop(columns=['name','level', 'gen']).drop_duplicates()
+    st.write(moves)
     
     st.write("---")  # Add a separator
     
