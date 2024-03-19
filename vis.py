@@ -201,7 +201,7 @@ def compare_pokemon(column, pokemon1, pokemon2, pokemon1_color, pokemon2_color):
     with column:
         fig_comparison = px.bar(comparison_data, x='Attribute', y='Value', color='Pokemon', barmode='group', title=f'Comparison: {pokemon1} vs. {pokemon2}',
                                 color_discrete_map={pokemon1: pokemon1_color, pokemon2: pokemon2_color})
-        fig_comparison.update_layout(yaxis=dict(range=[0, max_base_total]))
+        fig_comparison.update_layout(yaxis=dict(range=[0, max_base_total]), width = 450)
         fig_comparison.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
                                     xaxis=dict(showline=True, linecolor='rgb(204, 204, 204)', linewidth=2),
                                     yaxis=dict(showline=True, linecolor='rgb(204, 204, 204)', linewidth=2),
@@ -266,7 +266,8 @@ with tab3:
     # 2nd Pokemon card
     display_pokemon_details(col2, pokemon2)
     moves = pd.concat((move_data.loc[move_data['name'].isin([pokemon1])], (move_data.loc[move_data['name'].isin([pokemon2])]))).set_index('move').drop(columns=['name','level', 'gen']).drop_duplicates()
-    st.write(moves)
+    col1, col_df, col2 = st.columns([1, 20, 1])
+    col_df.write(moves)
     
     st.write("---")  # Add a separator
     
