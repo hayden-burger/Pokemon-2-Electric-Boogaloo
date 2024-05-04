@@ -1,17 +1,16 @@
-# Pokémon: Near Peer Battle Simulation
+# Pokémon 2 Electric Boogaloo
 
-Welcome to our team's final project repository at the Naval Postgraduate School (NPS), showcasing our Pokémon Battle Simulator developed for the OA3801 Computational Methods course. This simulator pits Generation 1 Pokémon against each other in automated battles, providing insights into battle dynamics and outcomes based on statistical analysis.
+Our team meets again, but this time with a larger scope for our project. Our goal: what 6-Pokémon team can most efficiently beat the Elite Four
 
 ## About This Repository
 
-This repository includes data source files in CSV format, Python modules, and a Jupyter notebook that collectively run the battle simulations. The core functionality is encapsulated within `pokemon_module.py`, which defines the Pokémon classes, battle mechanics, and simulation logic. The Streamlit app, accessible [here](https://pokemonnearpeerbattlesim3801.streamlit.app/), visualizes the simulation outcomes.
+This repository includes data source files in CSV format, Python modules, and a Jupyter notebook that collectively run the battle simulations. The core functionality is encapsulated within `pokemon_module.py`, which defines the Pokémon classes, battle mechanics, and simulation logic. An example of our orignal project can be accessed via a Streamlit app, accessible [here](https://pokemonnearpeerbattlesim3801.streamlit.app/), visualizes the simulation outcomes.
 
 ### Contributors
 
 - Hayden Burger
 - Corinne Desroches
 - David Lee
-- John Tyler
 
 Special thanks to our course instructors and peers at NPS for their support and guidance throughout this project.
 
@@ -28,7 +27,6 @@ Special thanks to our course instructors and peers at NPS for their support and 
 - **`Pokemon_module.py`**: Contains the data cleaning and resulting dataframes, the Pokémon class, and the battle functions.
 - **`Vis.py`**: Contains the script to visualize the `1000runs.csv` file in a Streamlit App.
 - **`Jupyter Notebook`**: Jupyter Notebook to perform 1000 iterations of every pokemon battle and exported to csv. Also contains functions and code to build visuals.
-
 
 ### Project Overview
 

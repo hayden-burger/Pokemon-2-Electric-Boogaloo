@@ -1,6 +1,6 @@
-#Hayden Burger, Corinne Desroches, David Lee, John Tyle
-#OA 3801 Comp Methods
-#March 2024
+#Hayden Burger, Corinne Desroches, David Lee
+#OA 3302 Simulation Modeling
+#May 2024
 #Pokemon module
 
 #import statements
@@ -50,6 +50,17 @@ Pokemon_df.set_index('name',inplace=True)
 base_url = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork"
 Pokemon_df['image_url'] = Pokemon_df['pokedex_number'].apply(lambda x: f"{base_url}/{x}.png")
 
+# edit stats for level
+stats = ['hp', 'speed', 'attack', 'sp_attack', 'defense', 'sp_defense']
+Pokemon_level = 50
+Pokemon_df.head()
+for pokemon in Pokemon_df.index:
+    for stat in stats:
+        if stat == 'hp':
+            Pokemon_df.loc[pokemon, stat] = int(((Pokemon_df.loc[pokemon, stat] * 2) * Pokemon_level / 100) + Pokemon_level + 10)
+        else:
+            Pokemon_df.loc[pokemon, stat] = int(((Pokemon_df.loc[pokemon, stat] * 2) * Pokemon_level / 100)+ 5)
+
 ##################################
 #Moveset_df/ L1_moves:
 # read in the 1st moveset csv
@@ -57,7 +68,7 @@ Moveset_df = pd.read_csv('Move_set_per_pokemon.csv')
 
 #Create a new dataset L1_moves for all moves of level 1
 #array of all indexes with level = 1
-moves = np.where(Moveset_df['level'] == 1)
+moves = np.where(Moveset_df['level'] <= Pokemon_level)
 #new dataset indexed by array of indexes
 L1_moves = Moveset_df.iloc[moves]
 # reindex after truncation
@@ -72,16 +83,19 @@ L1_moves.loc[:,['accuracy']] = L1_moves.loc[:,['accuracy']].replace('—','_')
 # correct accuracy for jynx pound PP from 3500% to 35
 L1_moves.loc[np.where(L1_moves['move'] == 'pound')[0], ['pp']] = L1_moves.loc[np.where(L1_moves['move'] == 'pound')[0], ['pp']].replace('3500%',35)
 # correct accuracy for Mew Swift from underscore to infinity (999999)
-L1_moves.loc[np.where(L1_moves['move'] == 'swift')[0], ['accuracy']] = L1_moves.loc[np.where(L1_moves['move'] == 'swift')[0], ['accuracy']].replace('_',999999)
+L1_moves.loc[np.where(L1_moves['move'] == 'swift')[0], ['accuracy']] = 999999
 # typecast values to int
 L1_moves['power'] = pd.to_numeric(L1_moves['power'])
 L1_moves['pp'] = pd.to_numeric(L1_moves['pp'])
 #change name farfetchd to farfetch'd and mr-mime to mr. mime
 L1_moves.loc[:,['name']] = L1_moves.loc[:,['name']].replace('farfetchd',"farfetch'd")
 L1_moves.loc[:,['name']] = L1_moves.loc[:,['name']].replace('mr-mime',"mr. mime")
-# change 'smoke screen' to 'smokescreen' and 'vicegrip' to 'vise grip'
+# change 'smoke screen' to 'smokescreen', 'vicegrip' to 'vise grip', 'hi jump kick' to 'high jump kick', and 'self-destruct' to 'self destruct'
 L1_moves.loc[:,['move']] = L1_moves.loc[:,['move']].replace('smoke screen','smokescreen')
+L1_moves.loc[:,['move']] = L1_moves.loc[:,['move']].replace('vice grip','vise grip')
 L1_moves.loc[:,['move']] = L1_moves.loc[:,['move']].replace('vicegrip','vise grip')
+L1_moves.loc[:,['move']] = L1_moves.loc[:,['move']].replace('hi jump kick','high jump kick')
+L1_moves.loc[:,['move']] = L1_moves.loc[:,['move']].replace('self destruct','self-destruct')
 
 # add the move 'struggle' to the L1_moves dataframe so that it is kept on the merge later.
 struggle_row = pd.DataFrame([{'name': 'any', 'level': 1, 'move': 'struggle', 'type': 'normal', 'power': 50, 'accuracy': 100, 'pp': 999}])
@@ -157,7 +171,7 @@ class Pokemon:
         self.name = name
         #grabs a row from Pokemon_df to reference
         self.individual_df = Pokemon_df.loc[name]
-        self.level = 1
+        self.level = Pokemon_level
 
         #Base stats
         self.start_speed = self.individual_df['speed']
@@ -728,7 +742,7 @@ def runbattle(pokemon_a,pokemon_b,verbose=False):
             pokemon2 = pokemon_a
 
     verboseprint("%s goes first!" % pokemon1.name,verbose)
-    nturns = 0
+    nturns = 1
 
     while pokemon1.hp >0 and pokemon2.hp>0:
 
@@ -739,8 +753,8 @@ def runbattle(pokemon_a,pokemon_b,verbose=False):
         #Check for a winner 
         winner = check_winner(pokemon1,pokemon2)
         if winner:
-            verboseprint('%s wins!' % winner,verbose)
-            return winner
+            verboseprint('\n%s wins after %d turns!' % (winner,nturns),verbose)
+            return winner, nturns
         
         pokemon2.choose_move(pokemon1,verbose)
         verboseprint("-- %s has %.1f hp remaining." % (pokemon1.name,pokemon1.hp),verbose)
@@ -749,12 +763,12 @@ def runbattle(pokemon_a,pokemon_b,verbose=False):
         #Check for a winner
         winner = check_winner(pokemon1,pokemon2)
         if winner:
-            verboseprint('%s wins!' % winner,verbose)
-            return winner
+            verboseprint('\n%s wins after %d turns!' % (winner,nturns),verbose)
+            return winner, nturns
         nturns += 1
         if nturns >100:
-            verboseprint('draw',verbose)
-            return 'draw'
+            verboseprint('\ndraw after %d turns' % nturns, verbose)
+            return 'draw', nturns
 
 #----------------------------------------------------------------------------------------
 
