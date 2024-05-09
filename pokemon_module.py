@@ -721,11 +721,25 @@ class Pokemon:
 
 #-------------------------------------------------------------------------------------
 ## Run Battle
-def runbattle(pokemon_a,pokemon_b,verbose=False):
+def runbattle(pokemon_a,pokemon_b,verbose=False,healing=False,freshstart=True):
+    '''pokemon_a and pokemon_b: Pokemon class
+    verbose: boolean, print or don't print moves 
+    healing: boolean for whether to heal in battle
+    freshstart: boolean for whether to reset at the beginning of a match '''
     #reset the stats of both pokemon
-    pokemon_a.reset()
-    pokemon_b.reset()
-    
+    if freshstart:
+        pokemon_a.reset()
+        pokemon_b.reset()
+
+    #if healing is True, set a number of heals per battle
+    if healing:
+        Nheals1 = 1
+        Nheals2 = 1
+    else:
+        Nheals1 = 0
+        Nheals2 = 0
+    healingthreshold = 0.15 #heals at 15 percent of original health
+
     #fastest pokemon is "pokemon1", who goes first
     if pokemon_a.start_speed > pokemon_b.start_speed:
         pokemon1=pokemon_a
@@ -746,7 +760,12 @@ def runbattle(pokemon_a,pokemon_b,verbose=False):
 
     while pokemon1.hp >0 and pokemon2.hp>0:
 
-        pokemon1.choose_move(pokemon2,verbose)
+        if (Nheals1 > 0) and (pokemon1.hp < healingthreshold * pokemon1.start_hp):
+            Nheals1 -= 1
+            pokemon1.reset()
+            verboseprint("%s used a full restore!" % pokemon1.name,verbose)
+        else:
+            pokemon1.choose_move(pokemon2,verbose)
         verboseprint("-- %s has %.1f hp remaining." % (pokemon2.name,pokemon2.hp),verbose)
         if pokemon1.in_battle == False:
             return 'draw'
@@ -756,7 +775,12 @@ def runbattle(pokemon_a,pokemon_b,verbose=False):
             verboseprint('\n%s wins after %d turns!' % (winner,nturns),verbose)
             return winner, nturns
         
-        pokemon2.choose_move(pokemon1,verbose)
+        if (Nheals2 > 0) and (pokemon2.hp < healingthreshold * pokemon2.start_hp):
+            Nheals2 -= 1
+            pokemon2.reset()
+            verboseprint("%s used a full restore!" % pokemon2.name,verbose)
+        else:
+            pokemon2.choose_move(pokemon1,verbose)
         verboseprint("-- %s has %.1f hp remaining." % (pokemon1.name,pokemon1.hp),verbose)
         if pokemon2.in_battle == False:
             return 'draw'
