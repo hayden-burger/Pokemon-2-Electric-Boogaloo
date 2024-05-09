@@ -1,3 +1,9 @@
+# Pokémon 2 Electric Boogaloo
+
+
+Our team meets again, but this time with a larger scope for our project. Our goal: what 6-Pokémon team can most efficiently beat the Elite Four
+
+## About This Repository
 
 
 ### Contributors
