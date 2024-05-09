@@ -772,12 +772,13 @@ def runbattle(pokemon_a,pokemon_b,verbose=False,healing=False,remaininghealth = 
             pokemon1.choose_move(pokemon2,verbose)
         verboseprint("-- %s has %.1f hp remaining." % (pokemon2.name,pokemon2.hp),verbose)
         if pokemon1.in_battle == False:
-            return 'draw'
+            return 'draw', nturns
         #Check for a winner 
         winner = check_winner(pokemon1,pokemon2)
         if winner:
-            verboseprint('\n%s wins after %d turns!' % (winner,nturns),verbose)
-            return winner, nturns
+            healthperc = winner.hp/winner.start_hp
+            verboseprint('\n%s wins after %d turns!%f percent of health remaining' % (winner,nturns,healthperc*100),verbose)
+            return winner.name, nturns, healthperc
         
         if (Nheals2 > 0) and (pokemon2.hp < healingthreshold * pokemon2.start_hp):
             Nheals2 -= 1
@@ -786,17 +787,19 @@ def runbattle(pokemon_a,pokemon_b,verbose=False,healing=False,remaininghealth = 
         else:
             pokemon2.choose_move(pokemon1,verbose)
         verboseprint("-- %s has %.1f hp remaining." % (pokemon1.name,pokemon1.hp),verbose)
+
         if pokemon2.in_battle == False:
-            return 'draw'
+            return 'draw', nturns, 1 #Would not actually be 1, revisit
         #Check for a winner
         winner = check_winner(pokemon1,pokemon2)
         if winner:
-            verboseprint('\n%s wins after %d turns!' % (winner,nturns),verbose)
-            return winner, nturns
+            healthperc = winner.hp/winner.start_hp
+            verboseprint('\n%s wins after %d turns! %f percent of health remaining' % (winner,nturns,healthperc*100),verbose)
+            return winner.name, nturns, healthperc
         nturns += 1
         if nturns >100:
             verboseprint('\ndraw after %d turns' % nturns, verbose)
-            return 'draw', nturns
+            return 'draw', nturns, 1 #Would not actually be 1, revisit
 
 #----------------------------------------------------------------------------------------
 
@@ -805,9 +808,9 @@ def check_winner(pokemona,pokemonb):
     if pokemona.hp <=0 and pokemonb.hp<=0:
         return 'draw'
     elif pokemona.hp <=0:
-        return pokemonb.name
+        return pokemonb
     elif pokemonb.hp <=0:
-        return pokemona.name
+        return pokemona
     else:
         return False
 
