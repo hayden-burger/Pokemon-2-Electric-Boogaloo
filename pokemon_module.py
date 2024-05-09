@@ -721,10 +721,11 @@ class Pokemon:
 
 #-------------------------------------------------------------------------------------
 ## Run Battle
-def runbattle(pokemon_a,pokemon_b,verbose=False,healing=False,freshstart=True):
+def runbattle(pokemon_a,pokemon_b,verbose=False,healing=False,remaininghealth = 1,freshstart=True):
     '''pokemon_a and pokemon_b: Pokemon class
     verbose: boolean, print or don't print moves 
     healing: boolean for whether to heal in battle
+    handicap: percent of health pokemon b has left (between 0 and 1)
     freshstart: boolean for whether to reset at the beginning of a match '''
     #reset the stats of both pokemon
     if freshstart:
@@ -739,6 +740,9 @@ def runbattle(pokemon_a,pokemon_b,verbose=False,healing=False,freshstart=True):
         Nheals1 = 0
         Nheals2 = 0
     healingthreshold = 0.15 #heals at 15 percent of original health
+
+    pokemon_b.hp = pokemon_b.start_hp*(remaininghealth)
+    verboseprint("->%s has %f hp.\n->%s has %f hp." % (pokemon_a.name,pokemon_a.hp,pokemon_b.name,pokemon_b.hp),verbose)
 
     #fastest pokemon is "pokemon1", who goes first
     if pokemon_a.start_speed > pokemon_b.start_speed:
