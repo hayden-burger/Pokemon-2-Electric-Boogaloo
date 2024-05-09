@@ -1,6 +1,6 @@
 # Pokémon 2 Electric Boogaloo
 
-# This is something HAYDEN wrote
+# This is something HAYDEN wrote part 2
 
 Our team meets again, but this time with a larger scope for our project. Our goal: what 6-Pokémon team can most efficiently beat the Elite Four
 
