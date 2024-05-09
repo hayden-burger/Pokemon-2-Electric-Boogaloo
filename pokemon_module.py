@@ -721,11 +721,29 @@ class Pokemon:
 
 #-------------------------------------------------------------------------------------
 ## Run Battle
-def runbattle(pokemon_a,pokemon_b,verbose=False):
+def runbattle(pokemon_a,pokemon_b,verbose=False,healing=False,remaininghealth = 1,freshstart=True):
+    '''pokemon_a and pokemon_b: Pokemon class
+    verbose: boolean, print or don't print moves 
+    healing: boolean for whether to heal in battle
+    handicap: percent of health pokemon b has left (between 0 and 1)
+    freshstart: boolean for whether to reset at the beginning of a match '''
     #reset the stats of both pokemon
-    pokemon_a.reset()
-    pokemon_b.reset()
-    
+    if freshstart:
+        pokemon_a.reset()
+        pokemon_b.reset()
+
+    #if healing is True, set a number of heals per battle
+    if healing:
+        Nheals1 = 1
+        Nheals2 = 1
+    else:
+        Nheals1 = 0
+        Nheals2 = 0
+    healingthreshold = 0.15 #heals at 15 percent of original health
+
+    pokemon_b.hp = pokemon_b.start_hp*(remaininghealth)
+    verboseprint("->%s has %f hp.\n->%s has %f hp." % (pokemon_a.name,pokemon_a.hp,pokemon_b.name,pokemon_b.hp),verbose)
+
     #fastest pokemon is "pokemon1", who goes first
     if pokemon_a.start_speed > pokemon_b.start_speed:
         pokemon1=pokemon_a
@@ -746,29 +764,42 @@ def runbattle(pokemon_a,pokemon_b,verbose=False):
 
     while pokemon1.hp >0 and pokemon2.hp>0:
 
-        pokemon1.choose_move(pokemon2,verbose)
+        if (Nheals1 > 0) and (pokemon1.hp < healingthreshold * pokemon1.start_hp):
+            Nheals1 -= 1
+            pokemon1.reset()
+            verboseprint("%s used a full restore!" % pokemon1.name,verbose)
+        else:
+            pokemon1.choose_move(pokemon2,verbose)
         verboseprint("-- %s has %.1f hp remaining." % (pokemon2.name,pokemon2.hp),verbose)
         if pokemon1.in_battle == False:
-            return 'draw'
+            return 'draw', nturns
         #Check for a winner 
         winner = check_winner(pokemon1,pokemon2)
         if winner:
-            verboseprint('\n%s wins after %d turns!' % (winner,nturns),verbose)
-            return winner, nturns
+            healthperc = winner.hp/winner.start_hp
+            verboseprint('\n%s wins after %d turns!%f percent of health remaining' % (winner,nturns,healthperc*100),verbose)
+            return winner.name, nturns, healthperc
         
-        pokemon2.choose_move(pokemon1,verbose)
+        if (Nheals2 > 0) and (pokemon2.hp < healingthreshold * pokemon2.start_hp):
+            Nheals2 -= 1
+            pokemon2.reset()
+            verboseprint("%s used a full restore!" % pokemon2.name,verbose)
+        else:
+            pokemon2.choose_move(pokemon1,verbose)
         verboseprint("-- %s has %.1f hp remaining." % (pokemon1.name,pokemon1.hp),verbose)
+
         if pokemon2.in_battle == False:
-            return 'draw'
+            return 'draw', nturns, 1 #Would not actually be 1, revisit
         #Check for a winner
         winner = check_winner(pokemon1,pokemon2)
         if winner:
-            verboseprint('\n%s wins after %d turns!' % (winner,nturns),verbose)
-            return winner, nturns
+            healthperc = winner.hp/winner.start_hp
+            verboseprint('\n%s wins after %d turns! %f percent of health remaining' % (winner,nturns,healthperc*100),verbose)
+            return winner.name, nturns, healthperc
         nturns += 1
         if nturns >100:
             verboseprint('\ndraw after %d turns' % nturns, verbose)
-            return 'draw', nturns
+            return 'draw', nturns, 1 #Would not actually be 1, revisit
 
 #----------------------------------------------------------------------------------------
 
@@ -777,9 +808,9 @@ def check_winner(pokemona,pokemonb):
     if pokemona.hp <=0 and pokemonb.hp<=0:
         return 'draw'
     elif pokemona.hp <=0:
-        return pokemonb.name
+        return pokemonb
     elif pokemonb.hp <=0:
-        return pokemona.name
+        return pokemona
     else:
         return False
 
