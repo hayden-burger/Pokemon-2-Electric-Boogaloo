@@ -1,13 +1,6 @@
 # Pokémon 2 Electric Boogaloo
 
-# This is something HAYDEN wrote part 2
-# Pokémon 2 Electric Boogaloo
-#this is something Corinne wrote
-# this is something else I wrote
-
 Our team meets again, but this time with a larger scope for our project. Our goal: what 6-Pokémon team can most efficiently beat the Elite Four
-#this is something Corinne wrote
-#something else
 
 ## About This Repository
 
