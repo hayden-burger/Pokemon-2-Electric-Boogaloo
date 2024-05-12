@@ -154,6 +154,10 @@ AMoveset = AMovesetSorted
 merged_moves_df = pd.merge(L1_moves,AMoveset.loc[:,['move', 'category', 'effect', 'effect_prob', 'gen']], on='move', how='left')
 merged_moves_df['gen'] = merged_moves_df['gen'].astype('Int64')
 merged_moves_df['effect_prob'] = merged_moves_df['effect_prob'].astype('Int64')
+#get rid of duplicate moves with different levels
+mm_columns = list(merged_moves_df.columns)
+mm_columns.remove('level')
+merged_moves_df.drop_duplicates(subset = mm_columns,keep='last',inplace=True)
 
 #--------------------------------------------------------------------------------
 def verboseprint(printstatement,verbose):
@@ -428,16 +432,14 @@ class Pokemon:
             
         #Accuracy:
         # if accuracy is inapplicable, move always works.
-        
         if working_move['accuracy'] == '_':
-            acc = 1
+                acc = 1
         else: #convert accuracy to a probability
-        #Accuracy depends on individual accuracy, move accuracy, and other's evasion
+            #Accuracy depends on individual accuracy, move accuracy, and other's evasion
             move_acc = float(working_move['accuracy'])
             self_acc = self.statmods_multipliers[self.statmods['accuracy']]
             other_evasion = other.statmods_multipliers[other.statmods['evasion']]
             acc = move_acc*self_acc*(1/other_evasion)/100
-        
          
 
         ####
@@ -690,7 +692,7 @@ class Pokemon:
         self.sp_defense = other.sp_defense
 
     def healthpercent(self):
-        return self.hp/self.start_hp
+        return round(self.hp/self.start_hp,3)
 
     def reset(self):
         '''Resets all conditions to starting conditions'''
@@ -780,18 +782,16 @@ def runbattle(pokemon_a,pokemon_b,verbose=False,healing=False,remaininghealth = 
             pokemon1.choose_move(pokemon2,verbose)
         verboseprint("-- %s has %.1f hp remaining." % (pokemon2.name,pokemon2.hp),verbose)
         if pokemon1.in_battle == False:
-            healthperc = (pokemon_a.healthpercent(),pokemon_b.healthpercent())
-            return 'draw', nturns, healthperc
+            return 'draw', nturns, pokemon_a.healthpercent(),pokemon_b.healthpercent()
         #Check for a winner 
         winner = check_winner(pokemon1,pokemon2)
         if winner:
-            #healthperc = winner.hp/winner.start_hp
-            healthperc = (pokemon_a.healthpercent(),pokemon_b.healthpercent())
+            
             if winner != 'draw':
                 verboseprint('\n%s wins after %d turns! %d percent of health remaining' % (winner.name,nturns,winner.healthpercent()*100),verbose)
-                return winner.name, nturns, healthperc
+                return winner.name, nturns, pokemon_a.healthpercent(),pokemon_b.healthpercent()
             else:
-                return winner,nturns,healthperc
+                return winner,nturns,pokemon_a.healthpercent(),pokemon_b.healthpercent()
         
         if (Nheals2 > 0) and (pokemon2.hp < healingthreshold * pokemon2.start_hp):
             Nheals2 -= 1
@@ -802,23 +802,20 @@ def runbattle(pokemon_a,pokemon_b,verbose=False,healing=False,remaininghealth = 
         verboseprint("-- %s has %.1f hp remaining." % (pokemon1.name,pokemon1.hp),verbose)
 
         if pokemon2.in_battle == False:
-            healthperc = (pokemon_a.healthpercent(),pokemon_b.healthpercent())
-            return 'draw', nturns, healthperc 
+            return 'draw', nturns, pokemon_a.healthpercent(),pokemon_b.healthpercent()
         #Check for a winner
         winner = check_winner(pokemon1,pokemon2)
         if winner:
-            healthperc = (pokemon_a.healthpercent(),pokemon_b.healthpercent())
             #healthperc = winner.hp/winner.start_hp
             if winner != 'draw':
                 verboseprint('\n%s wins after %d turns! %d percent of health remaining' % (winner.name,nturns,winner.healthpercent()*100),verbose)
-                return winner.name, nturns, healthperc
+                return winner.name, nturns, pokemon_a.healthpercent(),pokemon_b.healthpercent()
             else:
-                return winner,nturns,healthperc
+                return winner,nturns,pokemon_a.healthpercent(),pokemon_b.healthpercent()
         nturns += 1
         if nturns >100:
-            healthperc = (pokemon_a.healthpercent(),pokemon_b.healthpercent())
             verboseprint('\ndraw after %d turns' % nturns, verbose)
-            return 'draw', nturns, healthperc 
+            return 'draw', nturns, pokemon_a.healthpercent(),pokemon_b.healthpercent()
 
 #----------------------------------------------------------------------------------------
 
