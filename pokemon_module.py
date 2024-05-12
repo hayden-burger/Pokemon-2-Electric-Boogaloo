@@ -428,6 +428,7 @@ class Pokemon:
             
         #Accuracy:
         # if accuracy is inapplicable, move always works.
+        
         if working_move['accuracy'] == '_':
             acc = 1
         else: #convert accuracy to a probability
@@ -436,6 +437,10 @@ class Pokemon:
             self_acc = self.statmods_multipliers[self.statmods['accuracy']]
             other_evasion = other.statmods_multipliers[other.statmods['evasion']]
             acc = move_acc*self_acc*(1/other_evasion)/100
+        
+         
+
+        ####
         #if the other pokemon is underground they are immune to most moves
         #(not swift or transform)
         if other.underground and (chosen_move != 'swift') and (chosen_move != 'transform'):
@@ -684,6 +689,9 @@ class Pokemon:
         self.sp_attack = other.sp_attack
         self.sp_defense = other.sp_defense
 
+    def healthpercent(self):
+        return self.hp/self.start_hp
+
     def reset(self):
         '''Resets all conditions to starting conditions'''
         #Base stats, type, and modifiers:
@@ -772,13 +780,18 @@ def runbattle(pokemon_a,pokemon_b,verbose=False,healing=False,remaininghealth = 
             pokemon1.choose_move(pokemon2,verbose)
         verboseprint("-- %s has %.1f hp remaining." % (pokemon2.name,pokemon2.hp),verbose)
         if pokemon1.in_battle == False:
-            return 'draw', nturns
+            healthperc = (pokemon_a.healthpercent(),pokemon_b.healthpercent())
+            return 'draw', nturns, healthperc
         #Check for a winner 
         winner = check_winner(pokemon1,pokemon2)
         if winner:
-            healthperc = winner.hp/winner.start_hp
-            verboseprint('\n%s wins after %d turns!%f percent of health remaining' % (winner,nturns,healthperc*100),verbose)
-            return winner.name, nturns, healthperc
+            #healthperc = winner.hp/winner.start_hp
+            healthperc = (pokemon_a.healthpercent(),pokemon_b.healthpercent())
+            if winner != 'draw':
+                verboseprint('\n%s wins after %d turns! %d percent of health remaining' % (winner.name,nturns,winner.healthpercent()*100),verbose)
+                return winner.name, nturns, healthperc
+            else:
+                return winner,nturns,healthperc
         
         if (Nheals2 > 0) and (pokemon2.hp < healingthreshold * pokemon2.start_hp):
             Nheals2 -= 1
@@ -789,27 +802,37 @@ def runbattle(pokemon_a,pokemon_b,verbose=False,healing=False,remaininghealth = 
         verboseprint("-- %s has %.1f hp remaining." % (pokemon1.name,pokemon1.hp),verbose)
 
         if pokemon2.in_battle == False:
-            return 'draw', nturns, 1 #Would not actually be 1, revisit
+            healthperc = (pokemon_a.healthpercent(),pokemon_b.healthpercent())
+            return 'draw', nturns, healthperc 
         #Check for a winner
         winner = check_winner(pokemon1,pokemon2)
         if winner:
-            healthperc = winner.hp/winner.start_hp
-            verboseprint('\n%s wins after %d turns! %f percent of health remaining' % (winner,nturns,healthperc*100),verbose)
-            return winner.name, nturns, healthperc
+            healthperc = (pokemon_a.healthpercent(),pokemon_b.healthpercent())
+            #healthperc = winner.hp/winner.start_hp
+            if winner != 'draw':
+                verboseprint('\n%s wins after %d turns! %d percent of health remaining' % (winner.name,nturns,winner.healthpercent()*100),verbose)
+                return winner.name, nturns, healthperc
+            else:
+                return winner,nturns,healthperc
         nturns += 1
         if nturns >100:
+            healthperc = (pokemon_a.healthpercent(),pokemon_b.healthpercent())
             verboseprint('\ndraw after %d turns' % nturns, verbose)
-            return 'draw', nturns, 1 #Would not actually be 1, revisit
+            return 'draw', nturns, healthperc 
 
 #----------------------------------------------------------------------------------------
 
 def check_winner(pokemona,pokemonb):
     '''Returns winner's name if either pokemon's hp has decreased below zero'''
     if pokemona.hp <=0 and pokemonb.hp<=0:
+        pokemona.hp = 0
+        pokemonb.hp = 0
         return 'draw'
     elif pokemona.hp <=0:
+        pokemona.hp = 0
         return pokemonb
     elif pokemonb.hp <=0:
+        pokemonb.hp = 0
         return pokemona
     else:
         return False
