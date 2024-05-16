@@ -770,10 +770,11 @@ def runbattle(pokemon_a,pokemon_b,verbose=False,healing=False,remaininghealth = 
             pokemon2 = pokemon_a
 
     verboseprint("%s goes first!" % pokemon1.name,verbose)
-    nturns = 1
+    nturns = 0
 
     while pokemon1.hp >0 and pokemon2.hp>0:
-
+        
+        #Pokemon 1: heals or takes a turn
         if (Nheals1 > 0) and (pokemon1.hp < healingthreshold * pokemon1.start_hp):
             Nheals1 -= 1
             pokemon1.reset()
@@ -781,6 +782,7 @@ def runbattle(pokemon_a,pokemon_b,verbose=False,healing=False,remaininghealth = 
         else:
             pokemon1.choose_move(pokemon2,verbose)
         verboseprint("-- %s has %.1f hp remaining." % (pokemon2.name,pokemon2.hp),verbose)
+        nturns += 1
         if pokemon1.in_battle == False:
             return 'draw', nturns, pokemon_a.healthpercent(),pokemon_b.healthpercent()
         #Check for a winner 
@@ -793,6 +795,7 @@ def runbattle(pokemon_a,pokemon_b,verbose=False,healing=False,remaininghealth = 
             else:
                 return winner,nturns,pokemon_a.healthpercent(),pokemon_b.healthpercent()
         
+        #Pokemon 2: heals or takes a turn
         if (Nheals2 > 0) and (pokemon2.hp < healingthreshold * pokemon2.start_hp):
             Nheals2 -= 1
             pokemon2.reset()
@@ -800,6 +803,7 @@ def runbattle(pokemon_a,pokemon_b,verbose=False,healing=False,remaininghealth = 
         else:
             pokemon2.choose_move(pokemon1,verbose)
         verboseprint("-- %s has %.1f hp remaining." % (pokemon1.name,pokemon1.hp),verbose)
+        nturns +=1
 
         if pokemon2.in_battle == False:
             return 'draw', nturns, pokemon_a.healthpercent(),pokemon_b.healthpercent()
@@ -812,7 +816,7 @@ def runbattle(pokemon_a,pokemon_b,verbose=False,healing=False,remaininghealth = 
                 return winner.name, nturns, pokemon_a.healthpercent(),pokemon_b.healthpercent()
             else:
                 return winner,nturns,pokemon_a.healthpercent(),pokemon_b.healthpercent()
-        nturns += 1
+        
         if nturns >100:
             verboseprint('\ndraw after %d turns' % nturns, verbose)
             return 'draw', nturns, pokemon_a.healthpercent(),pokemon_b.healthpercent()
