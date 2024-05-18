@@ -15,7 +15,7 @@ pd.set_option("mode.copy_on_write", True)
 ###################################
 #Pokemon_df:
 #grab data
-Pokemon_df = pd.read_csv('pokemon.csv')
+Pokemon_df = pd.read_csv('Input_data_files\\pokemon.csv')
 columns_to_drop = ['abilities', 'base_egg_steps','base_happiness','capture_rate', 'japanese_name', 'percentage_male', 'is_legendary']
 Pokemon_df.drop(columns_to_drop, axis=1, inplace=True)
 
@@ -64,7 +64,7 @@ for pokemon in Pokemon_df.index:
 ##################################
 #Moveset_df/ L1_moves:
 # read in the 1st moveset csv
-Moveset_df = pd.read_csv('Move_set_per_pokemon.csv')
+Moveset_df = pd.read_csv('Input_data_files\\Move_set_per_pokemon.csv')
 
 #Create a new dataset L1_moves for all moves of level 1
 #array of all indexes with level = 1
@@ -104,7 +104,7 @@ L1_moves = pd.concat((L1_moves, struggle_row), ignore_index=True)
 ##############################################
 #AMoveset:
 # read in 'Moveset.csv', make all columns lowercase, drop the tm column, and pull just generation 1 moves
-AMoveset = pd.read_csv('Moveset.csv')
+AMoveset = pd.read_csv('Input_data_files\\Moveset.csv')
 AMoveset.rename(str.lower, axis='columns', inplace=True)
 AMoveset.rename(columns={'name': 'move'}, inplace=True)
 AMoveset.rename(columns={'acc': 'accuracy'}, inplace=True)
@@ -752,7 +752,7 @@ def runbattle(pokemon_a,pokemon_b,verbose=False,healing=False,remaininghealth = 
     healingthreshold = 0.15 #heals at 15 percent of original health
 
     pokemon_b.hp = pokemon_b.start_hp*(remaininghealth)
-    verboseprint("->%s has %f hp.\n->%s has %f hp." % (pokemon_a.name,pokemon_a.hp,pokemon_b.name,pokemon_b.hp),verbose)
+    verboseprint("->%s has %.1f hp.\n->%s has %.1f hp." % (pokemon_a.name,pokemon_a.hp,pokemon_b.name,pokemon_b.hp),verbose)
 
     #fastest pokemon is "pokemon1", who goes first
     if pokemon_a.start_speed > pokemon_b.start_speed:
