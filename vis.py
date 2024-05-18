@@ -36,7 +36,7 @@ pokemon_data = pk.Pokemon_df
 move_data = pk.merged_moves_df
 
 # Adjust the path to your file
-file_options_wins = ['Output_data_files\\1000runs.csv']  # List of file options
+file_options_wins = ['Output_data_files/1000runs.csv']  # List of file options
 # extend file options to include all files in the directory 'Output_data_files'
 for file in os.listdir('Output_data_files'):
     if file.endswith('wins.csv'):
