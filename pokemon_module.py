@@ -15,7 +15,7 @@ pd.set_option("mode.copy_on_write", True)
 ###################################
 #Pokemon_df:
 #grab data
-Pokemon_df = pd.read_csv('pokemon.csv')
+Pokemon_df = pd.read_csv('Input_data_files/pokemon.csv')
 columns_to_drop = ['abilities', 'base_egg_steps','base_happiness','capture_rate', 'japanese_name', 'percentage_male', 'is_legendary']
 Pokemon_df.drop(columns_to_drop, axis=1, inplace=True)
 
@@ -64,7 +64,7 @@ for pokemon in Pokemon_df.index:
 ##################################
 #Moveset_df/ L1_moves:
 # read in the 1st moveset csv
-Moveset_df = pd.read_csv('Move_set_per_pokemon.csv')
+Moveset_df = pd.read_csv('Input_data_files/Move_set_per_pokemon.csv')
 
 #Create a new dataset L1_moves for all moves of level 1
 #array of all indexes with level = 1
@@ -104,7 +104,7 @@ L1_moves = pd.concat((L1_moves, struggle_row), ignore_index=True)
 ##############################################
 #AMoveset:
 # read in 'Moveset.csv', make all columns lowercase, drop the tm column, and pull just generation 1 moves
-AMoveset = pd.read_csv('Moveset.csv')
+AMoveset = pd.read_csv('Input_data_files/Moveset.csv')
 AMoveset.rename(str.lower, axis='columns', inplace=True)
 AMoveset.rename(columns={'name': 'move'}, inplace=True)
 AMoveset.rename(columns={'acc': 'accuracy'}, inplace=True)
@@ -154,6 +154,10 @@ AMoveset = AMovesetSorted
 merged_moves_df = pd.merge(L1_moves,AMoveset.loc[:,['move', 'category', 'effect', 'effect_prob', 'gen']], on='move', how='left')
 merged_moves_df['gen'] = merged_moves_df['gen'].astype('Int64')
 merged_moves_df['effect_prob'] = merged_moves_df['effect_prob'].astype('Int64')
+#get rid of duplicate moves with different levels
+mm_columns = list(merged_moves_df.columns)
+mm_columns.remove('level')
+merged_moves_df.drop_duplicates(subset = mm_columns,keep='last',inplace=True)
 
 #--------------------------------------------------------------------------------
 def verboseprint(printstatement,verbose):
@@ -429,13 +433,16 @@ class Pokemon:
         #Accuracy:
         # if accuracy is inapplicable, move always works.
         if working_move['accuracy'] == '_':
-            acc = 1
+                acc = 1
         else: #convert accuracy to a probability
-        #Accuracy depends on individual accuracy, move accuracy, and other's evasion
+            #Accuracy depends on individual accuracy, move accuracy, and other's evasion
             move_acc = float(working_move['accuracy'])
             self_acc = self.statmods_multipliers[self.statmods['accuracy']]
             other_evasion = other.statmods_multipliers[other.statmods['evasion']]
             acc = move_acc*self_acc*(1/other_evasion)/100
+         
+
+        ####
         #if the other pokemon is underground they are immune to most moves
         #(not swift or transform)
         if other.underground and (chosen_move != 'swift') and (chosen_move != 'transform'):
@@ -684,6 +691,9 @@ class Pokemon:
         self.sp_attack = other.sp_attack
         self.sp_defense = other.sp_defense
 
+    def healthpercent(self):
+        return round(self.hp/self.start_hp,3)
+
     def reset(self):
         '''Resets all conditions to starting conditions'''
         #Base stats, type, and modifiers:
@@ -721,11 +731,29 @@ class Pokemon:
 
 #-------------------------------------------------------------------------------------
 ## Run Battle
-def runbattle(pokemon_a,pokemon_b,verbose=False):
+def runbattle(pokemon_a,pokemon_b,verbose=False,healing=False,remaininghealth = 1,freshstart=True):
+    '''pokemon_a and pokemon_b: Pokemon class
+    verbose: boolean, print or don't print moves 
+    healing: boolean for whether to heal in battle
+    handicap: percent of health pokemon b has left (between 0 and 1)
+    freshstart: boolean for whether to reset at the beginning of a match '''
     #reset the stats of both pokemon
-    pokemon_a.reset()
-    pokemon_b.reset()
-    
+    if freshstart:
+        pokemon_a.reset()
+        pokemon_b.reset()
+
+    #if healing is True, set a number of heals per battle
+    if healing:
+        Nheals1 = 1
+        Nheals2 = 1
+    else:
+        Nheals1 = 0
+        Nheals2 = 0
+    healingthreshold = 0.15 #heals at 15 percent of original health
+
+    pokemon_b.hp = pokemon_b.start_hp*(remaininghealth)
+    verboseprint("->%s has %.1f hp.\n->%s has %.1f hp." % (pokemon_a.name,pokemon_a.hp,pokemon_b.name,pokemon_b.hp),verbose)
+
     #fastest pokemon is "pokemon1", who goes first
     if pokemon_a.start_speed > pokemon_b.start_speed:
         pokemon1=pokemon_a
@@ -742,44 +770,71 @@ def runbattle(pokemon_a,pokemon_b,verbose=False):
             pokemon2 = pokemon_a
 
     verboseprint("%s goes first!" % pokemon1.name,verbose)
-    nturns = 1
+    nturns = 0
 
     while pokemon1.hp >0 and pokemon2.hp>0:
-
-        pokemon1.choose_move(pokemon2,verbose)
+        
+        #Pokemon 1: heals or takes a turn
+        if (Nheals1 > 0) and (pokemon1.hp < healingthreshold * pokemon1.start_hp):
+            Nheals1 -= 1
+            pokemon1.reset()
+            verboseprint("%s used a full restore!" % pokemon1.name,verbose)
+        else:
+            pokemon1.choose_move(pokemon2,verbose)
         verboseprint("-- %s has %.1f hp remaining." % (pokemon2.name,pokemon2.hp),verbose)
+        nturns += 1
         if pokemon1.in_battle == False:
-            return 'draw'
+            return 'draw', nturns, pokemon_a.healthpercent(),pokemon_b.healthpercent()
         #Check for a winner 
         winner = check_winner(pokemon1,pokemon2)
         if winner:
-            verboseprint('\n%s wins after %d turns!' % (winner,nturns),verbose)
-            return winner, nturns
+            
+            if winner != 'draw':
+                verboseprint('\n%s wins after %d turns! %d percent of health remaining' % (winner.name,nturns,winner.healthpercent()*100),verbose)
+                return winner.name, nturns, pokemon_a.healthpercent(),pokemon_b.healthpercent()
+            else:
+                return winner,nturns,pokemon_a.healthpercent(),pokemon_b.healthpercent()
         
-        pokemon2.choose_move(pokemon1,verbose)
+        #Pokemon 2: heals or takes a turn
+        if (Nheals2 > 0) and (pokemon2.hp < healingthreshold * pokemon2.start_hp):
+            Nheals2 -= 1
+            pokemon2.reset()
+            verboseprint("%s used a full restore!" % pokemon2.name,verbose)
+        else:
+            pokemon2.choose_move(pokemon1,verbose)
         verboseprint("-- %s has %.1f hp remaining." % (pokemon1.name,pokemon1.hp),verbose)
+        nturns +=1
+
         if pokemon2.in_battle == False:
-            return 'draw'
+            return 'draw', nturns, pokemon_a.healthpercent(),pokemon_b.healthpercent()
         #Check for a winner
         winner = check_winner(pokemon1,pokemon2)
         if winner:
-            verboseprint('\n%s wins after %d turns!' % (winner,nturns),verbose)
-            return winner, nturns
-        nturns += 1
+            #healthperc = winner.hp/winner.start_hp
+            if winner != 'draw':
+                verboseprint('\n%s wins after %d turns! %d percent of health remaining' % (winner.name,nturns,winner.healthpercent()*100),verbose)
+                return winner.name, nturns, pokemon_a.healthpercent(),pokemon_b.healthpercent()
+            else:
+                return winner,nturns,pokemon_a.healthpercent(),pokemon_b.healthpercent()
+        
         if nturns >100:
             verboseprint('\ndraw after %d turns' % nturns, verbose)
-            return 'draw', nturns
+            return 'draw', nturns, pokemon_a.healthpercent(),pokemon_b.healthpercent()
 
 #----------------------------------------------------------------------------------------
 
 def check_winner(pokemona,pokemonb):
     '''Returns winner's name if either pokemon's hp has decreased below zero'''
     if pokemona.hp <=0 and pokemonb.hp<=0:
+        pokemona.hp = 0
+        pokemonb.hp = 0
         return 'draw'
     elif pokemona.hp <=0:
-        return pokemonb.name
+        pokemona.hp = 0
+        return pokemonb
     elif pokemonb.hp <=0:
-        return pokemona.name
+        pokemonb.hp = 0
+        return pokemona
     else:
         return False
 
