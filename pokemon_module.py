@@ -735,7 +735,7 @@ def runbattle(pokemon_a,pokemon_b,verbose=False,healing=False,remaininghealth = 
     '''pokemon_a and pokemon_b: Pokemon class
     verbose: boolean, print or don't print moves 
     healing: boolean for whether to heal in battle
-    handicap: percent of health pokemon b has left (between 0 and 1)
+    remaininghealth: percent of health pokemon b has left (between 0 and 1)
     freshstart: boolean for whether to reset at the beginning of a match '''
     #reset the stats of both pokemon
     if freshstart:
@@ -783,18 +783,17 @@ def runbattle(pokemon_a,pokemon_b,verbose=False,healing=False,remaininghealth = 
             pokemon1.choose_move(pokemon2,verbose)
         verboseprint("-- %s has %.1f hp remaining." % (pokemon2.name,pokemon2.hp),verbose)
         nturns += 1
-        if pokemon1.in_battle == False:
-            return 'draw', nturns, pokemon_a.healthpercent(),pokemon_b.healthpercent()
+        
         #Check for a winner 
         winner = check_winner(pokemon1,pokemon2)
-        if winner:
-            
+        if winner: 
             if winner != 'draw':
-                verboseprint('\n%s wins after %d turns! %d percent of health remaining' % (winner.name,nturns,winner.healthpercent()*100),verbose)
+                verboseprint('\n%s wins after %d turns! %d percent of health remaining\n' % (winner.name,nturns,winner.healthpercent()*100),verbose)
                 return winner.name, nturns, pokemon_a.healthpercent(),pokemon_b.healthpercent()
             else:
                 return winner,nturns,pokemon_a.healthpercent(),pokemon_b.healthpercent()
-        
+        if pokemon1.in_battle == False:
+            return 'draw', nturns, pokemon_a.healthpercent(),pokemon_b.healthpercent()
         #Pokemon 2: heals or takes a turn
         if (Nheals2 > 0) and (pokemon2.hp < healingthreshold * pokemon2.start_hp):
             Nheals2 -= 1
@@ -805,17 +804,18 @@ def runbattle(pokemon_a,pokemon_b,verbose=False,healing=False,remaininghealth = 
         verboseprint("-- %s has %.1f hp remaining." % (pokemon1.name,pokemon1.hp),verbose)
         nturns +=1
 
-        if pokemon2.in_battle == False:
-            return 'draw', nturns, pokemon_a.healthpercent(),pokemon_b.healthpercent()
         #Check for a winner
         winner = check_winner(pokemon1,pokemon2)
         if winner:
             #healthperc = winner.hp/winner.start_hp
             if winner != 'draw':
-                verboseprint('\n%s wins after %d turns! %d percent of health remaining' % (winner.name,nturns,winner.healthpercent()*100),verbose)
+                verboseprint('\n%s wins after %d turns! %d percent of health remaining\n' % (winner.name,nturns,winner.healthpercent()*100),verbose)
                 return winner.name, nturns, pokemon_a.healthpercent(),pokemon_b.healthpercent()
             else:
                 return winner,nturns,pokemon_a.healthpercent(),pokemon_b.healthpercent()
+            
+        if pokemon2.in_battle == False:
+            return 'draw', nturns, pokemon_a.healthpercent(),pokemon_b.healthpercent()
         
         if nturns >100:
             verboseprint('\ndraw after %d turns' % nturns, verbose)
@@ -837,5 +837,68 @@ def check_winner(pokemona,pokemonb):
         return pokemona
     else:
         return False
+    
+#----------------------------------------------------------------------------------------
 
+def create_pokemon_dict(generation = 1):
+    '''Create a dictionary of pokemon objects'''
+    # Assign all pokemon as a class
+    gen1 = np.where(Pokemon_df['generation'] == generation) #isolates gen 1 pokemon
+    pokemon_dict = {} #Dictionary in {Pokemon name:Pokemon class format}
+    for pokemon_name in Pokemon_df.iloc[gen1].index: #for every pokemon in gen 1
+        #assign a class as a member of the dictionary
+        pokemon_dict[pokemon_name] = Pokemon(pokemon_name)
+    return pokemon_dict
 
+#----------------------------------------------------------------------------------------
+
+def battle_team(team_1, team_2, verbose=False):
+    '''Runs a battle between two teams of pokemon. Returns the winner 
+    winner list, and the number of rounds it took to win.'''
+    team_1_names = [pokemon.name for pokemon in team_1]
+    team_2_names = [pokemon.name for pokemon in team_2]
+    # reset all pokemon
+    for pokemon in team_1:
+        pokemon.reset()
+    for pokemon in team_2:
+        pokemon.reset()
+    rounds = 0
+    winner_list = []
+    n = 0
+    percent_health_a = 1
+    
+    for opponent in team_2:
+        percent_health_b = 1
+        for i in range(n,len(team_1)):
+            if percent_health_b > 0:
+                if percent_health_a == 1:
+                    winner, round_count, percent_health_a, percent_health_b = runbattle(team_1[i], opponent, verbose = verbose, healing=False, remaininghealth = percent_health_b)
+                    winner_list.append(winner)
+                    rounds += round_count
+                else:
+                    winner, round_count, percent_health_b, percent_health_a = runbattle(opponent, team_1[i], verbose = verbose, healing=True, remaininghealth = percent_health_a)
+                    winner_list.append(winner)
+                    rounds += round_count
+                if percent_health_a <= 0:
+                    n += 1
+                    percent_health_a = 1
+            else:
+                break
+    if winner_list[-1] in team_1_names:
+        winner = '1st team'    
+    else:
+        winner = '2nd team'
+    return winner, winner_list, rounds
+
+if __name__ == '__main__':
+    #----------------------------------------------------------------------------------------
+    # Test Battle
+    #----------------------------------------------------------------------------------------
+    # Create a dictionary of pokemon objects
+    pokemon_dict = create_pokemon_dict()
+    # Enter Pokemon one
+    pokemon1 = 'charizard'
+    # Enter Pokemon two
+    pokemon2 = 'blastoise'
+    # Run the battle
+    runbattle(pokemon_dict[pokemon1],pokemon_dict[pokemon2],verbose=True)
