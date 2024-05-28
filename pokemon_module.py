@@ -7,6 +7,7 @@
 import numpy as np
 import pandas as pd
 import random
+import copy
 # set pandas copy on write to be true
 pd.set_option("mode.copy_on_write", True)
 
@@ -737,6 +738,12 @@ def runbattle(pokemon_a,pokemon_b,verbose=False,healing=False,remaininghealth = 
     healing: boolean for whether to heal in battle
     remaininghealth: percent of health pokemon b has left (between 0 and 1)
     freshstart: boolean for whether to reset at the beginning of a match '''
+    #check if pokemon a is the same as pokemon b
+    if pokemon_a.name == pokemon_b.name:
+        #create a copy of pokemon b with a different name
+        pokemon_b = copy.deepcopy(pokemon_a)
+        pokemon_b.name = pokemon_b.name + '2'
+
     #reset the stats of both pokemon
     if freshstart:
         pokemon_a.reset()
@@ -812,7 +819,7 @@ def runbattle(pokemon_a,pokemon_b,verbose=False,healing=False,remaininghealth = 
                 verboseprint('\n%s wins after %d turns! %d percent of health remaining\n' % (winner.name,nturns,winner.healthpercent()*100),verbose)
                 return winner.name, nturns, pokemon_a.healthpercent(),pokemon_b.healthpercent()
             else:
-                return winner,nturns,pokemon_a.healthpercent(),pokemon_b.healthpercent()
+                return winner.name,nturns,pokemon_a.healthpercent(),pokemon_b.healthpercent()
             
         if pokemon2.in_battle == False:
             return 'draw', nturns, pokemon_a.healthpercent(),pokemon_b.healthpercent()
@@ -877,7 +884,7 @@ def battle_team(team_1, team_2, verbose=False,roundreset = True):
                     winner_list.append(winner)
                     rounds += round_count
                 else:
-                    winner, round_count, percent_health_b, percent_health_a = runbattle(opponent, team_1[i], verbose = verbose, healing=True, remaininghealth = percent_health_a)
+                    winner, round_count, percent_health_b, percent_health_a = runbattle(opponent, team_1[i], verbose = verbose, healing=False, remaininghealth = percent_health_a)
                     winner_list.append(winner)
                     rounds += round_count
                 if percent_health_a <= 0:
