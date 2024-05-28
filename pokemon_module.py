@@ -852,16 +852,17 @@ def create_pokemon_dict(generation = 1):
 
 #----------------------------------------------------------------------------------------
 
-def battle_team(team_1, team_2, verbose=False):
+def battle_team(team_1, team_2, verbose=False,roundreset = True):
     '''Runs a battle between two teams of pokemon. Returns the winner 
     winner list, and the number of rounds it took to win.'''
     team_1_names = [pokemon.name for pokemon in team_1]
     team_2_names = [pokemon.name for pokemon in team_2]
     # reset all pokemon
-    for pokemon in team_1:
-        pokemon.reset()
-    for pokemon in team_2:
-        pokemon.reset()
+    if roundreset:
+        for pokemon in team_1:
+            pokemon.reset()
+        for pokemon in team_2:
+            pokemon.reset()
     rounds = 0
     winner_list = []
     n = 0
