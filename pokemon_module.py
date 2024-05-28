@@ -891,6 +891,44 @@ def battle_team(team_1, team_2, verbose=False,roundreset = True):
         winner = '2nd team'
     return winner, winner_list, rounds
 
+def run_elite(our_team,elite4,verbose = False,roundreset = True):
+    ''' Function to run the elite four battles. Input is a list of 6 pokemon and 
+        the elite4 - these have to be pokemon objects.
+        Returns a tuple of success,round_time,teamname,winner_list:
+            Success is 1 if the team wins, 0 if the team loses.
+            round_time is the number of rounds it took to win divided by 10. 
+            Teamname is the name of the elite four member that the team lost to.
+            Winner_list is a list of the winners from the final battle.
+    '''
+    success = 0
+    winner = 'NA'
+    round_time = 0
+    teamname = 'NA'
+    
+    for team in elite4:
+        if team ==  elite4[0]:
+            winner,winner_list,rounds = battle_team(our_team,team,verbose,True)
+        else:
+            winner,winner_list,rounds = battle_team(our_team,team,verbose,roundreset)
+        round_time += rounds
+        if winner == "2nd team":
+            if team == elite4[0]:
+                teamname = 'Lorelei'
+            elif team == elite4[1]:
+                teamname = 'Bruno'
+            elif team == elite4[2]:
+                teamname = 'Agatha'
+            elif team == elite4[3]:
+                teamname = 'Lance'
+            else:
+                teamname = 'Error: Team not found'
+            round_time = round_time/10
+            return success,round_time,teamname,winner_list
+    round_time = round_time/10
+    teamname = 'Champion'
+    success = 1
+    return success,round_time,teamname,winner_list
+
 if __name__ == '__main__':
     #----------------------------------------------------------------------------------------
     # Test Battle
