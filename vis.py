@@ -106,7 +106,14 @@ elite_list = [elite4_1,elite4_2,elite4_3,elite4_4]
 elite = []
 for team in elite_list:
     elite.append(pk.create_pokemon_objects(team))
-
+elite_dict = {'Lorelei': elite_list[0], 'Bruno': elite_list[1], 'Agatha': elite_list[2], 'Lance': elite_list[3]}
+ # URLs to the images
+elite_four_images = {
+    "Lorelei": "https://img.pokemondb.net/sprites/trainers/red-blue/lorelei.png",
+    "Bruno": "https://img.pokemondb.net/sprites/trainers/red-blue/bruno.png",
+    "Agatha": "https://img.pokemondb.net/sprites/trainers/red-blue/agatha.png",
+    "Lance": "https://img.pokemondb.net/sprites/trainers/red-blue/lance.png"
+}
 # team members for each team
 team1 = ['gyarados','gyarados','gyarados','gyarados','gyarados','gyarados']
 team2 = ['gengar','gengar','gengar','gengar','gengar','gengar']
@@ -188,12 +195,12 @@ def plot_total_wins_vs_attribute(merged_data, attribute):
     fig_scatter.update_layout(height=600, xaxis_title='Total Wins', yaxis_title=attribute.capitalize())
     st.plotly_chart(fig_scatter)
 
-# Function to plot a scatterplot of Pokémon team total attributes vs. Total Wins
-def plot_team_wins_vs_attribute(merged_data, attribute):
-    fig_scatter = px.scatter(merged_data, x='Total Wins', y=attribute, text='Team',
-                     title=f"Pokémon Total Wins vs. {attribute.capitalize()}")
+# Function to plot a scatterplot of Pokémon team total attributes vs. metrics
+def plot_team_wins_vs_attribute(merged_data, attribute, metric):
+    fig_scatter = px.scatter(merged_data, x=metric, y=attribute, text='Team',
+                     title=f"Pokémon {metric.capitalize()} vs. {attribute.capitalize()}")
     fig_scatter.update_traces(textposition='top center')
-    fig_scatter.update_layout(height=600, xaxis_title='Total Wins', yaxis_title=attribute.capitalize())
+    fig_scatter.update_layout(height=600, xaxis_title=metric.capitalize(), yaxis_title=attribute.capitalize())
     st.plotly_chart(fig_scatter)
 
 
@@ -592,6 +599,7 @@ with page4:
     st.write("---")  # Add a separator for visual clarity
     
     total_wins, avg_times, enemy_dict = all_teams_results(team_data)
+    efficiences = [wins/time if time > 0 else 0 for wins, time in zip(total_wins, avg_times)]
     plot_battle_wins(total_wins, team_data, list(teams_dict.values()))
     
     st.write("---")  # Add a separator for visual clarity
@@ -602,10 +610,12 @@ with page4:
 
     # Allow user to select an attribute to compare against Total Wins
     attribute_options = ['base_total', 'hp', 'speed', 'attack', 'defense', 'sp_attack', 'sp_defense'] 
-    selected_attribute = st.selectbox("Select an attribute to compare with Total Wins:", options=attribute_options, key='attribute_select_4')
-    merged_data2 = pd.DataFrame({'Team': team_stat_df.index, 'Total Wins': total_wins})
+    metric_options = ['Total Wins', 'Average Time', 'Efficiency: (Wins/avg_Time)']
+    selected_attribute = st.selectbox("Select an attribute to compare:", options=attribute_options, key='attribute_select_4')
+    selected_metric = st.selectbox("Select a metric to compare:", options=metric_options, key='metric_select_4')
+    merged_data2 = pd.DataFrame({'Team': team_stat_df.index, 'Total Wins': total_wins, 'Average Time': avg_times, 'Efficiency: (Wins/avg_Time)': efficiences})
     merged_data2 = pd.merge(merged_data2, team_stat_df, left_on='Team', right_index=True)
-    plot_team_wins_vs_attribute(merged_data2, selected_attribute)
+    plot_team_wins_vs_attribute(merged_data2, selected_attribute, selected_metric)
     
     st.write("---")  # Add a separator for visual clarity
     team_data_value = st.selectbox('Select a team:', options=teams_dict.values(), key='team_data_select')
@@ -630,17 +640,24 @@ with page4:
     for i in range(len(team_data_value)):
         max_base_total += pokemon_data.loc[team_data_value[i], 'base_total']
     max_base_total = max_base_total + max_base_total/10
-    team2_data_value = st.selectbox('Select an Elite Four Team to compare against:', options=elite_list, key='team2_data_select')
-    team1_color, team2_color = get_pokemon_color(pokemon_data.loc[team_data_value[0], 'type1'], pokemon_data.loc[team_data_value[0], 'type2'], pokemon_data.loc[team2_data_value[1], 'type1'], pokemon_data.loc[team2_data_value[1], 'type2'])
-    compare_teams(colplot, team_data_value, team2_data_value, team1_color, team2_color, max_base_total)
+    elite4_member = st.selectbox('Select an Elite Four Team to compare against:', options=elite_dict, key='team2_data_select')
+    elite4_team = elite_dict[elite4_member]
+    st.write(f'{elite4_team}')
+    team1_color, team2_color = get_pokemon_color(pokemon_data.loc[team_data_value[0], 'type1'], pokemon_data.loc[team_data_value[0], 'type2'], pokemon_data.loc[elite4_team[1], 'type1'], pokemon_data.loc[elite4_team[1], 'type2'])
+    compare_teams(colplot, team_data_value, elite4_team, team1_color, team2_color, max_base_total)
+   
+    col2.subheader(elite4_member)
+    col2.image(elite_four_images[elite4_member], width=100)  # Smaller width
 
     st.write("---")  # Add a separator for visual clarity
     # Display a table of enemy_dict
     st.write("Losses to Elite Four Members:")
     # Convert dictionary to DataFrame with keys as indexes
     df = pd.DataFrame.from_dict(enemy_dict, orient='index', columns=['Defeats'])
+    # transpose dataframe
+    df = df.T
     # Sort by 'Defeats' and display as a Markdown table
-    st.markdown(df.sort_values(by='Defeats', ascending=False).to_markdown())
+    st.markdown(df.to_markdown())
     st.write("---")  # Add a separator for visual clarity
     
     plot_times(times, team_data_key)
