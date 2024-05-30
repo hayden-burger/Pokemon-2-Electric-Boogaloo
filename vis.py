@@ -95,6 +95,48 @@ type_colors = {
     'dragon': '#7038F8',  # Royal Blue
 }
 
+# create a dictionary of pokemon objects
+pk_dict = pk.create_pokemon_dict()
+# create a series of list of pokemon objects for each Elite Four Team
+elite4_1 = ['dewgong','cloyster','slowbro','jynx','lapras']
+elite4_2 = ['onix','hitmonlee','hitmonchan','onix','machamp']
+elite4_3 = ['gengar','golbat','haunter','arbok','gengar']
+elite4_4 = ['gyarados','dragonair','dragonair','aerodactyl','dragonite']
+elite_list = [elite4_1,elite4_2,elite4_3,elite4_4]
+elite = []
+for team in elite_list:
+    elite.append(pk.create_pokemon_objects(team))
+
+# team members for each team
+team1 = ['gyarados','gyarados','gyarados','gyarados','gyarados','gyarados']
+team2 = ['gengar','gengar','gengar','gengar','gengar','gengar']
+team3 = ['articuno','zapdos','mewtwo','blastoise','mew','moltres']
+team4 = ['gengar','poliwrath','magneton','dragonite','charizard','alakazam']
+team5 = ['poliwrath','hitmonchan','machamp','machamp','primeape','hitmonlee']
+team6 = ['mewtwo','snorlax','muk','vaporeon','wigglytuff','chansey']
+team7 = ['gengar','gyarados','articuno','haunter','zapdos','mewtwo']
+team8 = ['gengar','articuno','mewtwo','exeggutor','clefable','vaporeon']
+team9 = ['articuno','zapdos','moltres',"dodrio","farfetch'd",'pidgeot']
+team10 = ['gengar','lapras','rhydon','venusaur','onix','growlithe']
+team11 = ['exeggutor','gengar','vaporeon','clefable','mewtwo','articuno']
+teamslist = [team1,team2,team3,team4,team5,team6,team7,team8,team9,team10,team11]
+# convert teamslist to dictionary with keys as team names and values as team members
+teams_dict = {}
+for i in range(len(teamslist)):
+    teams_dict['team' + str(i+1)] = teamslist[i]
+# teams in reverse order have an additional b at the end
+teamsreverse = copy.deepcopy(teamslist)
+for i in range(len(teamslist)):
+    teamsreverse[i].reverse()
+    teams_dict['team' + str(i+1) + 'b'] = teamsreverse[i]
+
+attrs = ['base_total', 'hp', 'speed', 'attack', 'defense', 'sp_attack', 'sp_defense']
+# Sum up stats for each pokemon in the team and store in a dataframe
+team_stat_df = pd.DataFrame()
+for attr in attrs:
+    for team in teams_dict.keys():
+        team_stat_df.loc[team, attr] = sum([pokemon_data.loc[pokemon, attr] for pokemon in teams_dict[team]])
+
 
 # Function to get color based on Pokémon types
 def get_pokemon_color(type1, type2, other_type1, other_type2):
@@ -142,6 +184,14 @@ def plot_total_wins_vs_attribute(merged_data, attribute):
     fig_scatter = px.scatter(merged_data, x='Total Wins', y=attribute, text='name',
                      title=f"Pokémon Total Wins vs. {attribute.capitalize()}", 
                      hover_data=['type1', 'type2'])
+    fig_scatter.update_traces(textposition='top center')
+    fig_scatter.update_layout(height=600, xaxis_title='Total Wins', yaxis_title=attribute.capitalize())
+    st.plotly_chart(fig_scatter)
+
+# Function to plot a scatterplot of Pokémon team total attributes vs. Total Wins
+def plot_team_wins_vs_attribute(merged_data, attribute):
+    fig_scatter = px.scatter(merged_data, x='Total Wins', y=attribute, text='Team',
+                     title=f"Pokémon Total Wins vs. {attribute.capitalize()}")
     fig_scatter.update_traces(textposition='top center')
     fig_scatter.update_layout(height=600, xaxis_title='Total Wins', yaxis_title=attribute.capitalize())
     st.plotly_chart(fig_scatter)
@@ -219,15 +269,19 @@ def display_pokemon_details(column, pokemon_name):
     if pd.notnull(details['type2']):  # Check if 'type2' is not NaN
         html_content += f"T2: {details['type2']}<br>"
     html_content += f"""Ht: {details['height_m']} m<br>
-                    Wt: {details['weight_kg']} kg<br>
-                    Moves: {', '.join(moves.values)}
+                    Wt: {details['weight_kg']} kg    
+                    <b>Moves:</b>
+                    <ul>
                     """
+    for move in moves.values:
+        html_content += f"<li>{move}</li>"
+    html_content += "</ul>"
     # Display details in the specified column
     with column:
         st.markdown(html_content, unsafe_allow_html=True)
 
 # Comparison function with color coding integration
-def compare_pokemon(column, pokemon1, pokemon2, pokemon1_color, pokemon2_color):
+def compare_pokemon(column, pokemon1, pokemon2, pokemon1_color, pokemon2_color, max_base_total):
     attrs = ['base_total', 'hp', 'speed', 'attack', 'defense', 'sp_attack', 'sp_defense']
     pokemon1_data = pokemon_data.loc[pokemon1, attrs]
     pokemon2_data = pokemon_data.loc[pokemon2, attrs]
@@ -237,6 +291,28 @@ def compare_pokemon(column, pokemon1, pokemon2, pokemon1_color, pokemon2_color):
     with column:
         fig_comparison = px.bar(comparison_data, x='Attribute', y='Value', color='Pokemon', barmode='group', title=f'Comparison: {pokemon1} vs. {pokemon2}',
                                 color_discrete_map={pokemon1: pokemon1_color, pokemon2: pokemon2_color})
+        fig_comparison.update_layout(yaxis=dict(range=[0, max_base_total]), width = 450)
+        fig_comparison.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
+                                    xaxis=dict(showline=True, linecolor='rgb(204, 204, 204)', linewidth=2),
+                                    yaxis=dict(showline=True, linecolor='rgb(204, 204, 204)', linewidth=2),
+                                    legend=dict(x=1, y=1, xanchor='right', yanchor='top'))
+        st.plotly_chart(fig_comparison)
+
+def compare_teams(column, team1, team2, team1_color, team2_color, max_base_total):
+    attrs = ['base_total', 'hp', 'speed', 'attack', 'defense', 'sp_attack', 'sp_defense']
+    team1_data = pd.DataFrame()
+    team2_data = pd.DataFrame()
+    # get total stats for each pokemon in the team
+    for attr in attrs:
+        team1_data[attr] = [pokemon_data.loc[pokemon, attr] for pokemon in team1]
+        team2_data[attr] = [pokemon_data.loc[pokemon, attr] for pokemon in team2]
+    team1_total = team1_data.sum()
+    team2_total = team2_data.sum()
+    comparison_data = pd.DataFrame({'Attribute': attrs, 'Team 1': team1_total, 'Team 2': team2_total}).melt(id_vars='Attribute', var_name='Team', value_name='Value')
+    
+    with column:
+        fig_comparison = px.bar(comparison_data, x='Attribute', y='Value', color='Team', barmode='group', title=f'Team Total Stats Comparison',
+                                color_discrete_map={'Team 1': team1_color, 'Team 2': team2_color})
         fig_comparison.update_layout(yaxis=dict(range=[0, max_base_total]), width = 450)
         fig_comparison.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
                                     xaxis=dict(showline=True, linecolor='rgb(204, 204, 204)', linewidth=2),
@@ -299,23 +375,10 @@ pages = [
     "Total Wins",
     "Battle Performance",
     "Pokémon Stats",
-    "Pokémon Health Data",
-    "Pokémon Time Data",
     "Team Battle Data",
     "Pick a Team"
 ]
-page1, page2, page3, page4, page5, page6, page7 = st.tabs(pages)
-
-pk_dict = assign_pokemon_class()
-# Temporarily redirect stdout to capture the prints from the runbattle function
-elite4_1 = ['dewgong','cloyster','slowbro','jynx','lapras']
-elite4_2 = ['onix','hitmonlee','hitmonchan','onix','machamp']
-elite4_3 = ['gengar','golbat','haunter','arbok','gengar']
-elite4_4 = ['gyarados','dragonair','dragonair','aerodactyl','dragonite']
-elite_list = [elite4_1,elite4_2,elite4_3,elite4_4]
-elite = []
-for team in elite_list:
-    elite.append(pk.create_pokemon_objects(team))
+page1, page2, page3, page4, page5 = st.tabs(pages)
 
 
 
@@ -357,6 +420,7 @@ with page1:
     attribute_options = ['type1', 'type2', 'base_total', 'hp', 'speed', 'attack', 'defense', 'sp_attack', 'sp_defense'] # Assuming 'name' is not in pokemon_data columns
     selected_attribute = st.selectbox("Select an attribute to compare with Total Wins:", options=attribute_options, key='attribute_select_1')
     plot_total_wins_vs_attribute(merged_data, selected_attribute)
+    st.write("---")  # Add a separator for visual clarity
 
 # Page 2: Selected Pokémon Performance
 with page2:
@@ -397,7 +461,7 @@ with page3:
     display_pokemon_details(col1, pokemon1)
     # display pokemon stats 
     max_base_total = pokemon_data['base_total'].max() + 50
-    compare_pokemon(col_plot, pokemon1, pokemon2, pokemon1_color, pokemon2_color)
+    compare_pokemon(col_plot, pokemon1, pokemon2, pokemon1_color, pokemon2_color, max_base_total)
     # 2nd Pokemon card
     display_pokemon_details(col2, pokemon2)
     moves = pd.concat((move_data.loc[move_data['name'].isin([pokemon1])], (move_data.loc[move_data['name'].isin([pokemon2])]))).set_index('move').drop(columns=['name','level', 'gen']).drop_duplicates()
@@ -437,13 +501,11 @@ with page3:
         
         # Display the captured output in the Streamlit app
         st.text_area("Battle Output", output, height=300)
-        
-
-# Page 4: Selected Pokémon Health stats
-with page4:
-    st.title('Pokémon Health Remaining Comparison')
+    
+    st.write("---")  # Add a separator
+    st.title('Health Remaining Comparison')
     # Add page description
-    with st.expander("Page Description"):
+    with st.expander("Description"):
         st.markdown("""
                     This page is for visualizing the health stats of two Pokémon after 100 battles. 
                     The histogram below shows the distribution of remaining health percentages for each 
@@ -459,13 +521,6 @@ with page4:
     health_data.rename(columns=column_mapping, inplace=True)
     health_data.columns = ['_'.join(col) for col in health_data.columns.values]
     st.write("---")  # Add a separator for visual clarity
-    # Create two columns
-    col1, col2 = st.columns(2)
-    # Selection boxes for choosing Pokémon to compare
-    pokemon1 = col1.selectbox('Select a Pokémon:', options=pokemon_data.index, key='pokemon1_select_4')
-    pokemon2 = col2.selectbox('Select the opponent Pokémon:', options=pokemon_data.index, key='pokemon2_select_4')
-    # Get color for each Pokémon
-    pokemon1_color, pokemon2_color = get_pokemon_color(pokemon_data.loc[pokemon1, 'type1'], pokemon_data.loc[pokemon1, 'type2'], pokemon_data.loc[pokemon2, 'type1'], pokemon_data.loc[pokemon2, 'type2'])
     # create tuple of pokemon names
     pokemon_pair = pokemon1 + '_' + pokemon2
     # get the heals data for the pair
@@ -473,9 +528,10 @@ with page4:
     # filter out the 0s
     health_pair = health_pair[health_pair > 0]  
     # Adjust the ratios to give more space to the middle column and less to the side columns
-    col1, col_plot, col2 = st.columns([1, 4, 1])
-    # 1st Pokemon card
-    display_pokemon_details(col1, pokemon1)
+    col1, col_plot, col2 = st.columns([1, 6, 1])
+    for i in range(10):
+        col1.write(' ')
+    col1.image(pokemon_data.loc[pokemon1, 'image_url'], width=100)  # Smaller width
     # plot histogram of heals
     with col_plot:
         fig = px.histogram(health_pair, nbins=10, title=f'{pokemon1} vs {pokemon2} Health Remaining After 100 Battles')
@@ -483,17 +539,14 @@ with page4:
         fig.update_layout(showlegend=False)  # Hide legend
         fig.update_traces(marker_color=pokemon1_color)  # Set marker color
         st.plotly_chart(fig, use_container_width=True)
-    # 2nd Pokemon card
-    display_pokemon_details(col2, pokemon2)
-    moves = pd.concat((move_data.loc[move_data['name'].isin([pokemon1])], (move_data.loc[move_data['name'].isin([pokemon2])]))).set_index('move').drop(columns=['name','level', 'gen']).drop_duplicates()
-    col1, col_df, col2 = st.columns([1, 20, 1])
-    col_df.write(moves)
-      
-# Page 5: Selected Pokémon Time stats
-with page5:
-    st.title('Pokémon Time Comparison')
+    for i in range(10):
+        col2.write(' ')
+    col2.image(pokemon_data.loc[pokemon2, 'image_url'], width=100)  # Smaller width
+    st.write("---")  # Add a separator for visual clarity
+
+    st.title('Battle Length Comparison')
     # Add page description
-    with st.expander("Page Description"):
+    with st.expander("Description"):
         st.markdown("""
                     This page is for visualizing the number of turns taken between two Pokémon after 100 battles. 
                     The histogram below shows the distribution of turns where the data is based on the selected time data file.
@@ -506,21 +559,14 @@ with page5:
     time_data.rename(columns=column_mapping, inplace=True)
     time_data.columns = ['_'.join(col) for col in time_data.columns.values]
     st.write("---")  # Add a separator for visual clarity
-    # Create two columns
-    col1, col2 = st.columns(2)
-    # Selection boxes for choosing Pokémon to compare
-    pokemon1 = col1.selectbox('Select a Pokémon:', options=pokemon_data.index, key='pokemon1_select_5')
-    pokemon2 = col2.selectbox('Select the opponent Pokémon:', options=pokemon_data.index, key='pokemon2_select_5')
-    # Get color for each Pokémon
-    pokemon1_color, pokemon2_color = get_pokemon_color(pokemon_data.loc[pokemon1, 'type1'], pokemon_data.loc[pokemon1, 'type2'], pokemon_data.loc[pokemon2, 'type1'], pokemon_data.loc[pokemon2, 'type2'])
-    # create tuple of pokemon names
-    pokemon_pair = pokemon1 + '_' + pokemon2
     # get the time data for the pair
     time_pair = time_data[pokemon_pair]
     # Adjust the ratios to give more space to the middle column and less to the side columns
-    col1, col_plot, col2 = st.columns([1, 4, 1])
-    # 1st Pokemon card
-    display_pokemon_details(col1, pokemon1)
+    col1, col_plot, col2 = st.columns([1, 6, 1])
+    # 1st Pokemon image
+    for i in range(10):
+        col1.write(' ')
+    col1.image(pokemon_data.loc[pokemon1, 'image_url'], width=100)  # Smaller width
     # plot histogram of time
     with col_plot:
         fig = px.histogram(time_pair, nbins=10, title=f'{pokemon1} vs {pokemon2} Time Taken After 100 Battles')
@@ -528,14 +574,13 @@ with page5:
         fig.update_layout(showlegend=False)
         fig.update_traces(marker_color=pokemon1_color)
         st.plotly_chart(fig, use_container_width=True)
-    # 2nd Pokemon card
-    display_pokemon_details(col2, pokemon2)
-    moves = pd.concat((move_data.loc[move_data['name'].isin([pokemon1])], (move_data.loc[move_data['name'].isin([pokemon2])]))).set_index('move').drop(columns=['name','level', 'gen']).drop_duplicates()
-    col1, col_df, col2 = st.columns([1, 20, 1])
-    col_df.write(moves)
+    # 2nd Pokemon image
+    for i in range(10):
+        col2.write(' ')
+    col2.image(pokemon_data.loc[pokemon2, 'image_url'], width=100)  # Smaller width
     
-# Page 6: Team Battle Data
-with page6:
+# Page 4: Team Battle Data
+with page4:
     st.title('Team Battle Performance')
     # Add page description
     with st.expander("Page Description"):
@@ -543,29 +588,7 @@ with page6:
                     This page is for visualizing the performance of our chosen teams of pokémon.
                     Each team faces the Elite Four and their performance is recorded in the data files.
                     """)
-        
-    # team members for each team
-    team1 = ['gyarados','gyarados','gyarados','gyarados','gyarados','gyarados']
-    team2 = ['gengar','gengar','gengar','gengar','gengar','gengar']
-    team3 = ['articuno','zapdos','mewtwo','blastoise','mew','moltres']
-    team4 = ['gengar','poliwrath','magneton','dragonite','charizard','alakazam']
-    team5 = ['poliwrath','hitmonchan','machamp','machamp','primeape','hitmonlee']
-    team6 = ['mewtwo','snorlax','muk','vaporeon','wigglytuff','chansey']
-    team7 = ['gengar','gyarados','articuno','haunter','zapdos','mewtwo']
-    team8 = ['gengar','articuno','mewtwo','exeggutor','clefable','vaporeon']
-    team9 = ['articuno','zapdos','moltres',"dodrio","farfetch'd",'pidgeot']
-    team10 = ['gengar','lapras','rhydon','venusaur','onix','growlithe']
-    team11 = ['exeggutor','gengar','vaporeon','clefable','mewtwo','articuno']
-    teamslist = [team1,team2,team3,team4,team5,team6,team7,team8,team9,team10,team11]
-    # convert teamslist to dictionary with keys as team names and values as team members
-    teams_dict = {}
-    for i in range(len(teamslist)):
-        teams_dict['team' + str(i+1)] = teamslist[i]
-    # teams in reverse order have an additional b at the end
-    teamsreverse = copy.deepcopy(teamslist)
-    for i in range(len(teamslist)):
-        teamsreverse[i].reverse()
-        teams_dict['team' + str(i+1) + 'b'] = teamsreverse[i]
+
     st.write("---")  # Add a separator for visual clarity
     
     total_wins, avg_times, enemy_dict = all_teams_results(team_data)
@@ -574,9 +597,18 @@ with page6:
     st.write("---")  # Add a separator for visual clarity
     
     plot_battle_times(avg_times, total_wins, team_data, list(teams_dict.values()))
+
+    st.write("---")  # Add a separator for visual clarity
+
+    # Allow user to select an attribute to compare against Total Wins
+    attribute_options = ['base_total', 'hp', 'speed', 'attack', 'defense', 'sp_attack', 'sp_defense'] 
+    selected_attribute = st.selectbox("Select an attribute to compare with Total Wins:", options=attribute_options, key='attribute_select_4')
+    merged_data2 = pd.DataFrame({'Team': team_stat_df.index, 'Total Wins': total_wins})
+    merged_data2 = pd.merge(merged_data2, team_stat_df, left_on='Team', right_index=True)
+    plot_team_wins_vs_attribute(merged_data2, selected_attribute)
     
     st.write("---")  # Add a separator for visual clarity
-    team_data_value = st.selectbox('Select a team data file:', options=teams_dict.values(), key='team_data_select')
+    team_data_value = st.selectbox('Select a team:', options=teams_dict.values(), key='team_data_select')
     team_data_key = list(teams_dict.keys())[list(teams_dict.values()).index(team_data_value)]
     team = (team_data[team_data_key]).copy()
     wins, times, enemy_dict = get_total_wins_and_times(team)
@@ -590,7 +622,18 @@ with page6:
     with col_losses:
         # Display Losses
         st.metric(label="Elite Four Defeats", value=1000 - wins)
-        
+    st.write("---")  # Add a separator for visual clarity
+
+    # display team stats
+    col1, colplot, col2 = st.columns([1, 4, 1])
+    max_base_total = 0
+    for i in range(len(team_data_value)):
+        max_base_total += pokemon_data.loc[team_data_value[i], 'base_total']
+    max_base_total = max_base_total + max_base_total/10
+    team2_data_value = st.selectbox('Select an Elite Four Team to compare against:', options=elite_list, key='team2_data_select')
+    team1_color, team2_color = get_pokemon_color(pokemon_data.loc[team_data_value[0], 'type1'], pokemon_data.loc[team_data_value[0], 'type2'], pokemon_data.loc[team2_data_value[1], 'type1'], pokemon_data.loc[team2_data_value[1], 'type2'])
+    compare_teams(colplot, team_data_value, team2_data_value, team1_color, team2_color, max_base_total)
+
     st.write("---")  # Add a separator for visual clarity
     # Display a table of enemy_dict
     st.write("Losses to Elite Four Members:")
@@ -603,8 +646,8 @@ with page6:
     plot_times(times, team_data_key)
     
 
-# Page 7: Pick a Team
-with page7:
+# Page 5: Pick a Team
+with page5:
     st.title('Pick a Team')
     # Add page description
     with st.expander("Page Description"):
