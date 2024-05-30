@@ -859,6 +859,10 @@ def create_pokemon_dict(generation = 1):
         pokemon_dict[pokemon_name] = Pokemon(pokemon_name)
     return pokemon_dict
 
+def create_pokemon_objects(pokemon_list):
+    pokemon_dict = create_pokemon_dict()
+    return [pokemon_dict[pk] for pk in pokemon_list]
+
 #----------------------------------------------------------------------------------------
 
 def battle_team(team_1, team_2, verbose=False,roundreset = True):
