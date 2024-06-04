@@ -39,8 +39,8 @@ def load_data(filepath, **kwargs):
 pokemon_data = pk.Pokemon_df
 move_data = pk.merged_moves_df
 # read all sheets from the elite_results.xlsx file
-team_data = load_data('elite_results.xlsx', sheet_name = None, index_col=0)  
-random_team_data = load_data('Random_Team_Summary.csv', index_col=1)
+team_data = load_data('Output_data_files/elite_results.xlsx', sheet_name = None, index_col=0)  
+random_team_data = load_data('Output_data_files/Random_Team_Summary.csv', index_col=1)
 random_team_data.rename(columns={'Unnamed: 0':'Team Number'}, inplace=True)
 # Adjust the path to your file
 file_options_wins = {'Level 1 data': 'Output_data_files/Level_1_1000runs.csv'}  # Dictionary of file options
