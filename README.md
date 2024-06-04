@@ -1,11 +1,8 @@
-
 # Pokémon 2 Electric Boogaloo
-
 
 Our team meets again, but this time with a larger scope for our project. Our goal: what 6-Pokémon team can most efficiently beat the Elite Four
 
 ## About This Repository
-
 
 ### Contributors
 
@@ -15,23 +12,41 @@ Our team meets again, but this time with a larger scope for our project. Our goa
 
 Special thanks to our course instructors and peers at NPS for their support and guidance throughout this project.
 
-### Data Files
+### Distribution Exploration
 
-- **`1000runs.csv`**: Contains the outcomes of 1,000 simulated battles for each Pokémon pairing.
-- **`Pokemon.csv`**: Provides the base stats, available moves, and other attributes for each Generation 1 Pokémon.
+These files were used for developing distributions that would have been put into a Simio Model. We ended up scrapping that idea due to time constraints; however, this is included in the REPO to supplement our presentation and paper.
+
+- **`DistributionTesting.py`**: Tests for determining best distribution fits for any data.
+- **`pokemon_distributions`**: Used to develop distributions for our data.
+
+### Input Data Files
+
 - **`Move_set_per_pokemon.csv`**: Details the moves available to each Pokémon and their effects.
 - **`Moveset.csv`**: Details the moves with their type, power, accuracy, effects, and effect probability.
-- **`Requirements.txt`**: Lists the packages needed for the Streamlit app.
+- **`Pokemon Teams.xlsx`**: Details the composition of each team chosen and a description.
+- **`Pokemon.csv`**: Provides the base stats, available moves, and other attributes for each Generation 1 Pokémon.
+
+### Output Data Files
+
+- **`100runs_______.csv`**: These were made from battling each pokemon against each other 100 times - used for Distribution Exploration.
+- **`Level_1_1000runs.csv`**: These were the results from the first project of battling all Pokemon 1000 times.
+- **`Random_Team_Summary.csv`**: Details the results from randomly generated teams battling the Elite Four.
+- **`elite_results.csv`**: Details the results from **`Pokemon Teams.xlsx`** battling the Elite Four.
+
+### Presentation and Paper
+
+Contains the presentationa and paper submitted for our final project.
 
 ### Python Files
 
 - **`Pokemon_module.py`**: Contains the data cleaning and resulting dataframes, the Pokémon class, and the battle functions.
-- **`Vis.py`**: Contains the script to visualize the `1000runs.csv` file in a Streamlit App.
-- **`Jupyter Notebook`**: Jupyter Notebook to perform 1000 iterations of every pokemon battle and exported to csv. Also contains functions and code to build visuals.
+- **`Vis.py`**: Contains the script to visualize the results in a Streamlit App.
+- **`Requirements.txt`**: Lists the packages needed for the Streamlit app.
+- **`testpokemon.ipynb`**: Jupyter Notebook used to explore our project. Also contains functions and code to build visuals.
 
 ### Project Overview
 
-Our project applies Python programming and data visualization skills to simulate and analyze battles between all 151 Generation 1 Pokémon, each battling every other Pokémon 1,000 times. This required:
+Our project applies Python programming and data visualization skills to simulate and analyze battles between teams of 6 pokemon vs the generation one Elite Four. This required:
 
 - Parsing CSV files for Pokémon stats and move sets.
 - Developing a Python class to represent Pokémon, including attributes for stats and moves.
