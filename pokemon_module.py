@@ -800,6 +800,7 @@ def runbattle(pokemon_a,pokemon_b,verbose=False,healing=False,remaininghealth = 
             else:
                 return winner,nturns,pokemon_a.healthpercent(),pokemon_b.healthpercent()
         if pokemon1.in_battle == False:
+            verboseprint('\n%s left the battle, draw after %d turns' % (pokemon1.name, nturns), verbose)
             return 'draw', nturns, pokemon_a.healthpercent(),pokemon_b.healthpercent()
         #Pokemon 2: heals or takes a turn
         if (Nheals2 > 0) and (pokemon2.hp < healingthreshold * pokemon2.start_hp):
@@ -819,11 +820,12 @@ def runbattle(pokemon_a,pokemon_b,verbose=False,healing=False,remaininghealth = 
                 verboseprint('\n%s wins after %d turns! %d percent of health remaining\n' % (winner.name,nturns,winner.healthpercent()*100),verbose)
                 return winner.name, nturns, pokemon_a.healthpercent(),pokemon_b.healthpercent()
             else:
-                return winner.name,nturns,pokemon_a.healthpercent(),pokemon_b.healthpercent()
-            
+                return 'draw',nturns,pokemon_a.healthpercent(),pokemon_b.healthpercent()
+        # Check if pokemon 2 has left the battle    
         if pokemon2.in_battle == False:
+            verboseprint('\n%s left the battle, draw after %d turns' % (pokemon2.name, nturns), verbose)
             return 'draw', nturns, pokemon_a.healthpercent(),pokemon_b.healthpercent()
-        
+        # Check if the battle has gone on for too long
         if nturns >100:
             verboseprint('\ndraw after %d turns' % nturns, verbose)
             return 'draw', nturns, pokemon_a.healthpercent(),pokemon_b.healthpercent()
@@ -856,6 +858,10 @@ def create_pokemon_dict(generation = 1):
         #assign a class as a member of the dictionary
         pokemon_dict[pokemon_name] = Pokemon(pokemon_name)
     return pokemon_dict
+
+def create_pokemon_objects(pokemon_list):
+    pokemon_dict = create_pokemon_dict()
+    return [pokemon_dict[pk] for pk in pokemon_list]
 
 #----------------------------------------------------------------------------------------
 
