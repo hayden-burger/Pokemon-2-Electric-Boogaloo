@@ -40,7 +40,8 @@ pokemon_data = pk.Pokemon_df
 move_data = pk.merged_moves_df
 # read all sheets from the elite_results.xlsx file
 team_data = load_data('elite_results.xlsx', sheet_name = None, index_col=0)  
-
+random_team_data = load_data('Random_Team_Summary.csv', index_col=1)
+random_team_data.rename(columns={'Unnamed: 0':'Team Number'}, inplace=True)
 # Adjust the path to your file
 file_options_wins = {'Level 1 data': 'Output_data_files/Level_1_1000runs.csv'}  # Dictionary of file options
 # extend file options to include all files in the directory 'Output_data_files'
@@ -145,6 +146,7 @@ for attr in attrs:
         team_stat_df.loc[team, attr] = sum([pokemon_data.loc[pokemon, attr] for pokemon in teams_dict[team]])
 
 
+
 # Function to get color based on Pokémon types
 def get_pokemon_color(type1, type2, other_type1, other_type2):
     # Set the default/fallback color
@@ -196,9 +198,14 @@ def plot_total_wins_vs_attribute(merged_data, attribute):
     st.plotly_chart(fig_scatter)
 
 # Function to plot a scatterplot of Pokémon team total attributes vs. metrics
-def plot_team_wins_vs_attribute(merged_data, attribute, metric):
-    fig_scatter = px.scatter(merged_data, x=metric, y=attribute, text='Team',
-                     title=f"Pokémon {metric.capitalize()} vs. {attribute.capitalize()}")
+def plot_team_wins_vs_attribute(merged_data, attribute, metric, show_labels=True):
+    if show_labels:
+        text = 'Team'
+    else:
+        text = None
+    fig_scatter = px.scatter(merged_data, x=metric, y=attribute, text=text,
+                     title=f"Pokémon {metric.capitalize()} vs. {attribute.capitalize()}",
+                     hover_data=['Team'])
     fig_scatter.update_traces(textposition='top center')
     fig_scatter.update_layout(height=600, xaxis_title=metric.capitalize(), yaxis_title=attribute.capitalize())
     st.plotly_chart(fig_scatter)
@@ -383,9 +390,10 @@ pages = [
     "Battle Performance",
     "Pokémon Stats",
     "Team Battle Data",
-    "Pick a Team"
+    "Pick a Team",
+    "Random Team Battle Data"
 ]
-page1, page2, page3, page4, page5 = st.tabs(pages)
+page1, page2, page3, page4, page5, page6 = st.tabs(pages)
 
 
 
@@ -611,8 +619,9 @@ with page4:
     # Allow user to select an attribute to compare against Total Wins
     attribute_options = ['base_total', 'hp', 'speed', 'attack', 'defense', 'sp_attack', 'sp_defense'] 
     metric_options = ['Total Wins', 'Average Time', 'Efficiency: (Wins/avg_Time)']
-    selected_attribute = st.selectbox("Select an attribute to compare:", options=attribute_options, key='attribute_select_4')
-    selected_metric = st.selectbox("Select a metric to compare:", options=metric_options, key='metric_select_4')
+    col1, col2 = st.columns(2)
+    selected_attribute = col1.selectbox("Select an attribute to compare:", options=attribute_options, key='attribute_select_4')
+    selected_metric = col2.selectbox("Select a metric to compare:", options=metric_options, key='metric_select_4')
     merged_data2 = pd.DataFrame({'Team': team_stat_df.index, 'Total Wins': total_wins, 'Average Time': avg_times, 'Efficiency: (Wins/avg_Time)': efficiences})
     merged_data2 = pd.merge(merged_data2, team_stat_df, left_on='Team', right_index=True)
     plot_team_wins_vs_attribute(merged_data2, selected_attribute, selected_metric)
@@ -701,3 +710,85 @@ with page5:
         # Display the captured output in the Streamlit app
         st.text_area("Battle Output", output, height=300)
         
+
+# Page 6: Random Team Battle Data
+with page6:
+    st.title('Random Team Battle Performance')
+    # Add page description
+    with st.expander("Page Description"):
+        st.markdown("""
+                    This page is for visualizing the performance of 69770 randomly chosen teams of pokémon.
+                    Of the 151^6 possible teams, 69770 teams were randomly selected due to time constraint.
+                    Each team faces the Elite Four and their performance is recorded in the data files.
+                    This page explores the results of that data.
+                    """)
+
+    st.write("---")  # Add a separator for visual clarity
+    win_counts = pd.DataFrame(random_team_data.Wins.value_counts()).transpose()
+    # Plot histogram of wins
+    fig_random_wins = px.bar(random_team_data.Wins.value_counts(), title='Frequency of Wins for Across Random Teams')
+    fig_random_wins.update_layout(xaxis_title='Win Count', yaxis_title='Frequency')
+    st.plotly_chart(fig_random_wins)
+    # Display the win counts
+    st.subheader('Win Counts Table')
+    st.table(win_counts)
+    
+    # plot the total wins and sort by total wins
+    non_zero_wins = random_team_data[random_team_data['Wins'] != 0]
+    
+    st.write("---")  # Add a separator for visual clarity
+    st.header('Total Wins for Each Team (where Wins > 0)')
+    fig_random_wins = px.bar(non_zero_wins.sort_values(by='Wins', ascending=False), y='Wins', title='Total Wins for Each Team')
+    fig_random_wins.update_layout(xaxis_title='Pokémon Team', yaxis_title='Number of Wins')
+    st.plotly_chart(fig_random_wins)
+    st.write("---")  # Add a separator for visual clarity
+    st.header('Average Time for Each Team (where Wins > 0)')
+    fig_random_times = px.bar(non_zero_wins.sort_values(by='Wins', ascending=False), y='Avg Time Win', title='Average Time for Each Team')
+    fig_random_times.update_layout(xaxis_title='Pokémon Team', yaxis_title='Average Time (m)')
+    st.plotly_chart(fig_random_times)
+    st.write("---")  # Add a separator for visual clarity
+    # Allow user to select an attribute to compare against Total Wins
+    col1, col2 = st.columns(2)
+    attribute_options = ['base_total', 'hp', 'speed', 'attack', 'defense', 'sp_attack', 'sp_defense'] 
+    metric_options = ['Wins', 'Avg Time Win', 'Efficiency: (Wins/avg_Time)']
+    metric_options.extend(list(random_team_data.columns[11:18]))
+    selected_attribute = col1.selectbox("Select an attribute to compare:", options=attribute_options, key='attribute_select_6')
+    selected_metric = col2.selectbox("Select a metric to compare:", options=metric_options, key='metric_select_6')
+    random_team_data.reset_index(inplace=True)
+    random_team_data.set_index('Team Number', inplace=True)
+    
+    st.header('Team Performance Metric Comparison')
+    plot_team_wins_vs_attribute(random_team_data, selected_attribute, selected_metric, show_labels=False)
+    
+    st.write("---")  # Add a separator for visual clarity
+    st.header('Histogram of Nemesis Pokémon')
+    # Add page description
+    with st.expander("Description"):
+        st.markdown("""
+                    A nemesis Pokémon is the Pokémon that defeated a team the most times.
+                    """)
+    # Display a histogram of the top 8 nemesis Pokémon
+    fig_nemesis = px.bar(random_team_data['Nemesis'].value_counts().head(8), title='Top Nemesis Pokémon')
+    fig_nemesis.update_layout(xaxis_title='Pokémon', yaxis_title='Number of Wins')
+    st.plotly_chart(fig_nemesis)
+    st.write("---")  # Add a separator for visual clarity
+    st.header('Elite Four Losses Histogram')
+    # Add page description
+    with st.expander("Description"):
+        st.markdown("""
+                    A histogram of the number of losses to each Elite Four member.
+                    Does not count losses if total wins is 0. This would overinflate 
+                    the losses to Lorelei - the first Elite Four member. As all 100,
+                    losses would be attributed to her.
+                    """)
+    # Display a histogram of the Elite Four members that defeated the most teams
+    elite_losses = pd.DataFrame(columns=['Elite Four Member', 'Losses'])
+    elite_losses['Elite Four Member'] = ['Lorelei', 'Bruno', 'Agatha', 'Lance']
+    elite_losses['Losses'] = [non_zero_wins['Losses to Lorelei'].sum(), non_zero_wins['Losses to Bruno'].sum(), non_zero_wins['Losses to Agatha'].sum(), non_zero_wins['Losses to Lance'].sum()]
+    fig_elite_losses = px.bar(elite_losses, x='Elite Four Member', y='Losses', title='Elite Four Losses Histogram')
+    fig_elite_losses.update_layout(xaxis_title='Elite Four Member', yaxis_title='Number of Losses')
+    st.plotly_chart(fig_elite_losses)
+    st.write("Agatha seems to be the hardest Elite Four member to defeat.")
+    st.write("---")  # Add a separator for visual clarity
+    st.header('Data Table of Random Teams')
+    st.write(random_team_data)
